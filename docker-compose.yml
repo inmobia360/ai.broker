@@ -1,0 +1,36 @@
+﻿services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai_broker_web
+    restart: always
+    ports:
+      - " 3000:3000\
+ env_file:
+ - .env
+ environment:
+ - DATABASE_URL=postgresql://broker_user:broker_password@postgres:5432/ai_broker_db
+ - OLLAMA_BASE_URL=
+ - OLLAMA_MODEL=
+ volumes:
+ - storage_data:/app/storage/private
+ depends_on:
+ - postgres
+
+ postgres:
+ image: pgvector/pgvector:pg16
+ container_name: ai_broker_db
+ restart: always
+ environment:
+ POSTGRES_USER: broker_user
+ POSTGRES_PASSWORD: broker_password
+ POSTGRES_DB: ai_broker_db
+ ports:
+ - \5432:5432\
+ volumes:
+ - postgres_data:/var/lib/postgresql/data
+
+volumes:
+ postgres_data:
+ storage_data:

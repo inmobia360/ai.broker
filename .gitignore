@@ -10,3 +10,5 @@ storage/inbox/
 workspace/
 *.log
 __pycache__/
+.next/
+*.tsbuildinfo
