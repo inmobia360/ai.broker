@@ -10,6 +10,10 @@ export interface LLMResponse {
   latencyMs: number;
 }
 
+if (typeof process !== "undefined") {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+}
+
 export class InmobiaLLMProvider {
   private primaryProvider: string;
   private ollamaUrl: string;
@@ -20,15 +24,15 @@ export class InmobiaLLMProvider {
   private geminiKey?: string;
 
   constructor() {
-    this.primaryProvider = (process.env.AI_DEFAULT_PROVIDER || process.env.VERA_PROVIDER || "ollama").toLowerCase();
+    this.primaryProvider = (process.env.AI_DEFAULT_PROVIDER || "ollama").toLowerCase();
     
-    let rawUrl = process.env.OLLAMA_URL || process.env.OLLAMA_BASE_URL || "https://72.62.27.4";
+    let rawUrl = process.env.OLLAMA_URL || "https://ollama-pisf.srv1823868.hstgr.cloud/api/chat";
     if (!rawUrl.includes("/api/chat") && !rawUrl.includes("/api/generate")) {
       rawUrl = rawUrl.replace(/\/$/, "") + "/api/chat";
     }
     this.ollamaUrl = rawUrl;
-    this.ollamaModel = process.env.OLLAMA_MODEL || "llama3.1:8b";
-    this.ollamaApiKey = process.env.OLLAMA_API_KEY || process.env.OLLAMA_AUTH_TOKEN || process.env.OLLAMA_AUTH_PASSWORD;
+    this.ollamaModel = process.env.OLLAMA_MODEL || "vera:latest";
+    this.ollamaApiKey = process.env.OLLAMA_API_KEY;
     
     this.openRouterKey = process.env.OPENROUTER_API_KEY;
     this.groqKey = process.env.GROQ_API_KEY;
@@ -39,26 +43,27 @@ export class InmobiaLLMProvider {
     const startTime = Date.now();
 
     // 1. Intento Primario: Ollama en VPS Hostinger
-    if (["ollama", "qwen", "llama"].includes(this.primaryProvider)) {
+    if (["ollama", "qwen", "llama", "vera"].includes(this.primaryProvider)) {
       try {
-        const ollamaRes = await this.callOllama(messages, 8000);
+        // Timeout de 90s para dar tiempo a la CPU del VPS a sintetizar la respuesta completa
+        const ollamaRes = await this.callOllama(messages, 90000);
         if (ollamaRes) {
           return {
             ok: true,
             content: ollamaRes,
-            provider: `ollama_${this.ollamaModel}`,
+            provider: `Hostinger Ollama (${this.ollamaModel})`,
             latencyMs: Date.now() - startTime
           };
         }
       } catch (err) {
-        console.warn("[InmobiaLLM] Ollama no disponible temporalmente, evaluando respaldo:", err);
+        console.warn("[InmobiaLLM] Ollama Hostinger no disponible temporalmente, evaluando respaldo:", err);
       }
     }
 
-    // 2. Respaldo Secundario: OpenRouter (exacto a captacion-2.0)
+    // 2. Respaldo Secundario: OpenRouter / Cloud
     if (this.openRouterKey) {
       try {
-        const orRes = await this.callOpenRouter(messages, 10000);
+        const orRes = await this.callOpenRouter(messages, 15000);
         if (orRes) {
           return {
             ok: true,
@@ -72,7 +77,7 @@ export class InmobiaLLMProvider {
       }
     }
 
-    // 3. Respaldo Terciario: Motor Cognitivo Inmobiliario de Rescate (Zero Downtime)
+    // 3. Respaldo Terciario: Motor Cognitivo Inmobiliario de Rescate
     const userMsg = messages[messages.length - 1]?.content || "";
     const localContent = this.generateCognitiveFallback(userMsg);
 
@@ -106,7 +111,7 @@ export class InmobiaLLMProvider {
           messages,
           stream: false,
           options: {
-            temperature: 0.65,
+            temperature: 0.4,
             top_p: 0.9
           }
         })
