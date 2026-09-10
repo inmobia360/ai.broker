@@ -31,7 +31,7 @@ export class InmobiaLLMProvider {
       rawUrl = rawUrl.replace(/\/$/, "") + "/api/chat";
     }
     this.ollamaUrl = rawUrl;
-    this.ollamaModel = process.env.OLLAMA_MODEL || "vera:latest";
+    this.ollamaModel = process.env.OLLAMA_MODEL || "llama3.2:3b";
     this.ollamaApiKey = process.env.OLLAMA_API_KEY;
     
     this.openRouterKey = process.env.OPENROUTER_API_KEY;
@@ -42,11 +42,10 @@ export class InmobiaLLMProvider {
   async generateReply(messages: LLMMessage[]): Promise<LLMResponse> {
     const startTime = Date.now();
 
-    // 1. Intento Primario: Ollama en VPS Hostinger
+    // 1. Intento Primario: Ollama en VPS Hostinger (Optimizado con keep_alive y limites de tokens)
     if (["ollama", "qwen", "llama", "vera"].includes(this.primaryProvider)) {
       try {
-        // Timeout de 90s para dar tiempo a la CPU del VPS a sintetizar la respuesta completa
-        const ollamaRes = await this.callOllama(messages, 90000);
+        const ollamaRes = await this.callOllama(messages, 35000);
         if (ollamaRes) {
           return {
             ok: true,
@@ -56,11 +55,11 @@ export class InmobiaLLMProvider {
           };
         }
       } catch (err) {
-        console.warn("[InmobiaLLM] Ollama Hostinger no disponible temporalmente, evaluando respaldo:", err);
+        console.warn("[InmobiaLLM] Ollama Hostinger no respondio a tiempo:", err);
       }
     }
 
-    // 2. Respaldo Secundario: OpenRouter / Cloud
+    // 2. Respaldo Secundario: OpenRouter / Cloud (mismo patron de captacion-2.0)
     if (this.openRouterKey) {
       try {
         const orRes = await this.callOpenRouter(messages, 15000);
@@ -73,7 +72,7 @@ export class InmobiaLLMProvider {
           };
         }
       } catch (err) {
-        console.warn("[InmobiaLLM] OpenRouter fallo, pasando a fallback cognitivo:", err);
+        console.warn("[InmobiaLLM] OpenRouter fallo:", err);
       }
     }
 
@@ -109,8 +108,11 @@ export class InmobiaLLMProvider {
         body: JSON.stringify({
           model: this.ollamaModel,
           messages,
+          keep_alive: "60m",
           stream: false,
           options: {
+            num_predict: 250,
+            num_ctx: 2048,
             temperature: 0.4,
             top_p: 0.9
           }
