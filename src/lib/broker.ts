@@ -1,8 +1,8 @@
-import { ollama, OllamaChatMessage } from "./ollama";
+import { inmobiaLLM, LLMMessage } from "./llm/provider";
 import { TenantContext } from "./tenant";
 import { BrokerActionProposal } from "../types";
 
-const SYSTEM_PROMPT_BROKER_SPAIN = `Eres BROKER, el copiloto de inteligencia artificial inmobiliaria para agencias en Espana.
+const SYSTEM_PROMPT_BROKER_SPAIN = `Eres BROKER, el copiloto de inteligencia artificial inmobiliaria para agencias en Espana, integrado en el ecosistema inmobia360 (broker.inmobia360.com).
 Tu funcion es asistir al agente inmobiliario en la gestion de expedientes, contratos de arras, mandatos de venta, notas simples del registro y normativa inmobiliaria espanola (Ley de Arrendamientos Urbanos - LAU, Ley por el Derecho a la Vivienda, Codigo Civil).
 
 NORMAS INVIOLABLES DE TU CONSTITUCION:
@@ -21,17 +21,18 @@ export class BrokerOrchestrator {
 
   async processMessage(
     userMessage: string, 
-    conversationHistory: OllamaChatMessage[] = []
-  ): Promise<{ reply: string; actionProposals: BrokerActionProposal[] }> {
+    conversationHistory: LLMMessage[] = []
+  ): Promise<{ reply: string; provider: string; actionProposals: BrokerActionProposal[] }> {
     const tenantId = this.tenantCtx.getTenantId();
 
-    const messages: OllamaChatMessage[] = [
+    const messages: LLMMessage[] = [
       { role: "system", content: SYSTEM_PROMPT_BROKER_SPAIN },
       ...conversationHistory,
       { role: "user", content: userMessage }
     ];
 
-    const reply = await ollama.chat(messages, { temperature: 0.4 });
+    const llmRes = await inmobiaLLM.generateReply(messages);
+    const reply = llmRes.content;
     const actionProposals: BrokerActionProposal[] = [];
 
     if (reply.toLowerCase().includes("arras") || reply.toLowerCase().includes("contrato")) {
@@ -39,7 +40,7 @@ export class BrokerOrchestrator {
         id: `prop-${Date.now()}-1`,
         tenantId,
         title: "Generacion de Borrador de Contrato",
-        description: "Borrador contractual preparado segun normativa espanola. Requiere validacion humana.",
+        description: "Borrador contractual preparado segun normativa espanola (Art. 1454 Codigo Civil). Requiere validacion humana.",
         actionType: "generate_contract",
         payload: { summary: "Contrato de arras / mandato preparado para revision" },
         requiresHumanApproval: true,
@@ -50,6 +51,7 @@ export class BrokerOrchestrator {
 
     return {
       reply,
+      provider: llmRes.provider,
       actionProposals
     };
   }

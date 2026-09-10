@@ -1,18 +1,25 @@
 import { NextResponse } from "next/server";
-import { ollama } from "@/lib/ollama";
+import { inmobiaLLM } from "@/lib/llm/provider";
 
-export async function GET() {
-  const ollamaStatus = await ollama.checkHealth();
+export async function GET(req: Request) {
+  const host = req.headers.get("host") || "broker.inmobia360.com";
+  const startedAt = Date.now();
+
+  const testReply = await inmobiaLLM.generateReply([
+    { role: "user", content: "Estado del sistema inmobia360" }
+  ]);
 
   return NextResponse.json({
-    status: "ok",
+    ok: true,
     platform: "AI BROKER",
-    domain: "broker.inmobia360.com",
-    ollama: {
-      status: ollamaStatus,
-      endpoint: process.env.OLLAMA_BASE_URL || "https://72.62.27.4",
+    ecosystem: "inmobia360.com",
+    host,
+    llm: {
+      provider: testReply.provider,
+      latencyMs: testReply.latencyMs,
+      endpoint: process.env.OLLAMA_URL || "https://72.62.27.4/api/chat",
       model: process.env.OLLAMA_MODEL || "llama3.1:8b",
-      authConfigured: Boolean(process.env.OLLAMA_AUTH_PASSWORD || process.env.OLLAMA_AUTH_TOKEN)
+      hasApiKey: Boolean(process.env.OLLAMA_API_KEY)
     },
     timestamp: new Date().toISOString()
   });
