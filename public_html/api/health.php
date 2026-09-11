@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * AI BROKER - Health Check Endpoint
  * Diagnóstico del VPS Hostinger Ollama y del servicio web

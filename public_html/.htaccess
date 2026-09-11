@@ -1,4 +1,4 @@
-﻿# AI BROKER - Hostinger Apache / LiteSpeed Configuration
+# AI BROKER - Hostinger Apache / LiteSpeed Configuration
 # Dominio: asesor.inmobia360.com
 
 <IfModule mod_rewrite.c>
