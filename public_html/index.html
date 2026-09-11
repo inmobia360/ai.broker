@@ -1,0 +1,583 @@
+﻿<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI BROKER | asesor.inmobia360.com</title>
+  <meta name="description" content="Plataforma SaaS marca blanca para agencias y profesionales inmobiliarios - Ecosistema inmobia360">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#eef2ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="h-full text-slate-100 flex overflow-hidden antialiased select-none">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 hidden md:flex">
+    <div>
+      <!-- Brand Header -->
+      <div class="p-4 border-b border-slate-800 flex items-center gap-3">
+        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <i data-lucide="building-2" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="font-bold text-sm tracking-wide">AI BROKER</span>
+            <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-medium">v1.0 Pro</span>
+          </div>
+          <p class="text-[11px] text-slate-400">asesor.inmobia360.com</p>
+        </div>
+      </div>
+
+      <!-- Tenant Switcher -->
+      <div class="p-3">
+        <div class="bg-slate-950/60 border border-slate-800/80 rounded-lg p-2.5">
+          <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+            <span>Tenant Activo</span>
+            <span class="inline-flex items-center gap-1 text-emerald-400 font-mono">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Aislado
+            </span>
+          </div>
+          <div class="font-medium text-xs text-slate-200 truncate">Agencia Inmobiliaria Centro</div>
+          <div class="text-[10px] font-mono text-slate-500 mt-0.5">tenant_id: inmobia-cen-01</div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="px-3 py-2 space-y-1">
+        <a href="#" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg bg-indigo-600/10 text-indigo-400 border border-indigo-500/20">
+          <i data-lucide="bot" class="w-4 h-4"></i>
+          <span>Consola AI Broker</span>
+        </a>
+        <a href="#" onclick="showSection('casos')" class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
+          <span class="flex items-center gap-2.5">
+            <i data-lucide="briefcase" class="w-4 h-4"></i>
+            <span>Casos & Propiedades</span>
+          </span>
+          <span class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.2 rounded font-mono">3</span>
+        </a>
+        <a href="#" onclick="showSection('boveda')" class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
+          <span class="flex items-center gap-2.5">
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+            <span>Bóveda de Documentos</span>
+          </span>
+          <span class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.2 rounded font-mono">Safe</span>
+        </a>
+        <a href="#" onclick="showSection('auditoria')" class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
+          <i data-lucide="scroll-text" class="w-4 h-4"></i>
+          <span>Auditoría & Logs</span>
+        </a>
+      </nav>
+
+      <!-- Legal Compliance Card -->
+      <div class="px-3 py-2 mt-4">
+        <div class="bg-indigo-950/20 border border-indigo-900/30 rounded-lg p-3 text-[11px] text-slate-300">
+          <div class="flex items-center gap-1.5 text-indigo-400 font-semibold mb-1">
+            <i data-lucide="scale" class="w-3.5 h-3.5"></i>
+            <span>Marco Legal Español</span>
+          </div>
+          <ul class="text-[10px] text-slate-400 space-y-0.5">
+            <li>• LAU (Ley 29/1994)</li>
+            <li>• Ley de Vivienda 12/2023</li>
+            <li>• Art. 1454 C.C. (Arras)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar Footer -->
+    <div class="p-3 border-t border-slate-800 bg-slate-900/50 text-[11px]">
+      <div class="flex items-center justify-between text-slate-400">
+        <span class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          Hostinger Ollama
+        </span>
+        <span class="font-mono text-[10px] text-emerald-400" id="vps-latency-badge">~10s CPU</span>
+      </div>
+      <div class="text-[10px] text-slate-500 mt-1 font-mono truncate">llama3.2:3b @ srv1823868</div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN VIEW ================= -->
+  <main class="flex-1 flex flex-col min-w-0 bg-slate-950">
+
+    <!-- Top Bar -->
+    <header class="h-14 border-b border-slate-800 bg-slate-900/60 backdrop-blur px-4 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <button class="md:hidden p-1.5 text-slate-400 hover:text-white" onclick="toggleSidebar()">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <div>
+          <h1 class="text-sm font-semibold flex items-center gap-2">
+            <span>Consola de Operaciones IA</span>
+            <span class="text-slate-500 font-normal">|</span>
+            <span class="text-xs font-mono text-indigo-400">asesor.inmobia360.com</span>
+          </h1>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button onclick="testHealth()" class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+          <i data-lucide="activity" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span>Diagnóstico VPS</span>
+        </button>
+        <span class="h-4 w-px bg-slate-800"></span>
+        <div class="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="header-status">Online (VPS)</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area: Chat + Side Inspector -->
+    <div class="flex-1 flex overflow-hidden">
+
+      <!-- Chat Feed -->
+      <section class="flex-1 flex flex-col min-w-0">
+        
+        <!-- Messages Scroll Area -->
+        <div id="messages-container" class="flex-1 overflow-y-auto p-4 space-y-4">
+
+          <!-- Welcome Banner -->
+          <div class="bg-gradient-to-br from-slate-900 via-slate-900/90 to-indigo-950/40 border border-slate-800 rounded-xl p-4 shadow-sm">
+            <div class="flex items-start gap-3">
+              <div class="p-2 bg-indigo-500/10 border border-indigo-500/20 rounded-lg shrink-0">
+                <i data-lucide="sparkles" class="w-5 h-5 text-indigo-400"></i>
+              </div>
+              <div class="space-y-1">
+                <h2 class="text-sm font-semibold text-slate-100">AI BROKER inmobiliario activado</h2>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                  Sistema de gestión, asesoramiento legal y redacción contractual para agencias en España.
+                  Conectado al motor local Hostinger VPS (<code class="text-indigo-300 font-mono">llama3.2:3b</code>). Las acciones de firma o envío de ofertas requieren confirmación expresa.
+                </p>
+                <div class="flex flex-wrap gap-1.5 pt-2">
+                  <button onclick="sendQuickPrompt('Redacta un borrador de contrato de arras penitenciales para Calle Mayor 42 por 285.000€')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-md border border-slate-700 transition">
+                    📝 Arras Penitenciales (285k€)
+                  </button>
+                  <button onclick="sendQuickPrompt('Calcula el desglose de honorarios al 50/50 entre agencias para venta de 285.000€')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-md border border-slate-700 transition">
+                    💰 Reparto Honorarios 50/50
+                  </button>
+                  <button onclick="sendQuickPrompt('Verifica los requisitos legales para la venta según la Ley 12/2023 de Vivienda')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-md border border-slate-700 transition">
+                    ⚖️ Ley Vivienda 12/2023
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Initial Agent Message -->
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
+              <i data-lucide="bot" class="w-4 h-4 text-indigo-400"></i>
+            </div>
+            <div class="max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl rounded-tl-none p-3.5 text-xs space-y-2">
+              <div class="flex items-center justify-between text-[10px] text-slate-500 mb-1">
+                <span class="font-medium text-indigo-400">AI BROKER</span>
+                <span class="font-mono">llama3.2:3b</span>
+              </div>
+              <div class="text-slate-200 leading-relaxed">
+                ¡Hola! Tengo cargado el expediente del inmueble <strong class="text-slate-100">Calle Mayor 42, 3ºB (Madrid)</strong> valorado en <strong class="text-emerald-400">285.000 €</strong>. ¿En qué operación o contrato deseas avanzar hoy?
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Input Bar -->
+        <div class="p-3 border-t border-slate-800 bg-slate-900/40 shrink-0">
+          <form id="chat-form" onsubmit="handleChatSubmit(event)" class="relative">
+            <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl p-1.5 focus-within:border-indigo-500 transition">
+              <input 
+                id="chat-input" 
+                type="text" 
+                placeholder="Escribe una instrucción a AI BROKER (ej: 'Redactar arras', 'Calcular comisión 50/50')..." 
+                class="flex-1 bg-transparent border-0 px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none"
+                autocomplete="off"
+              />
+              <button 
+                type="submit" 
+                id="send-btn"
+                class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition disabled:opacity-50"
+              >
+                <span>Enviar</span>
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+            <div class="flex items-center justify-between px-2 pt-1 text-[10px] text-slate-500">
+              <span>Enter para enviar • Control 'Human-in-the-loop' habilitado</span>
+              <span class="font-mono">tenant: inmobia-cen-01</span>
+            </div>
+          </form>
+        </div>
+
+      </section>
+
+      <!-- Right Inspector Panel -->
+      <aside class="w-80 border-l border-slate-800 bg-slate-900/40 p-4 space-y-4 overflow-y-auto hidden lg:block shrink-0">
+        
+        <!-- Active Property Card -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Inmueble en Curso</span>
+            <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono font-medium">En Venta</span>
+          </div>
+          <div>
+            <div class="font-medium text-xs text-slate-100">Calle Mayor 42, 3º B</div>
+            <div class="text-[11px] text-slate-400">28013 Madrid (Centro)</div>
+            <div class="text-sm font-bold text-emerald-400 mt-1">285.000 € <span class="text-[10px] text-slate-500 font-normal">(3.352 €/m²)</span></div>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5 text-center text-[10px] text-slate-300">
+            <div class="bg-slate-950/60 p-1.5 rounded border border-slate-800">
+              <span class="text-slate-500 block">Sup.</span>
+              <span class="font-semibold">85 m²</span>
+            </div>
+            <div class="bg-slate-950/60 p-1.5 rounded border border-slate-800">
+              <span class="text-slate-500 block">Hab.</span>
+              <span class="font-semibold">2 dorm.</span>
+            </div>
+            <div class="bg-slate-950/60 p-1.5 rounded border border-slate-800">
+              <span class="text-slate-500 block">CEE</span>
+              <span class="font-semibold text-emerald-400">Letra D</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Document Vault Shortcuts -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Generador Contratos</span>
+            <i data-lucide="file-check" class="w-3.5 h-3.5 text-indigo-400"></i>
+          </div>
+          <p class="text-[11px] text-slate-400">Genera y descarga plantillas redactadas según la normativa española:</p>
+          <div class="space-y-1.5">
+            <button onclick="downloadArrasDoc()" class="w-full text-left bg-slate-950 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-xs flex items-center justify-between transition group">
+              <div class="flex items-center gap-2">
+                <i data-lucide="file-text" class="w-4 h-4 text-indigo-400"></i>
+                <div>
+                  <div class="font-medium text-slate-200">Arras Penitenciales</div>
+                  <div class="text-[10px] text-slate-500">Art. 1454 C.C. (Señal 10%)</div>
+                </div>
+              </div>
+              <i data-lucide="download" class="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-200 transition"></i>
+            </button>
+
+            <button onclick="downloadEncargoDoc()" class="w-full text-left bg-slate-950 hover:bg-slate-800 border border-slate-800 p-2 rounded-lg text-xs flex items-center justify-between transition group">
+              <div class="flex items-center gap-2">
+                <i data-lucide="file-signature" class="w-4 h-4 text-emerald-400"></i>
+                <div>
+                  <div class="font-medium text-slate-200">Nota de Encargo MLS</div>
+                  <div class="text-[10px] text-slate-500">Colaboración 50/50</div>
+                </div>
+              </div>
+              <i data-lucide="download" class="w-3.5 h-3.5 text-slate-500 group-hover:text-slate-200 transition"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Pending Authorizations -->
+        <div class="bg-amber-950/20 border border-amber-900/30 rounded-xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between text-amber-400">
+            <span class="text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1.5">
+              <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+              Autorizaciones Pendientes
+            </span>
+            <span class="text-[10px] bg-amber-500/20 px-1.5 py-0.5 rounded font-mono">1</span>
+          </div>
+          <div class="text-[11px] text-slate-300">
+            Envío de borrador de arras al comprador con cláusula resolutoria.
+          </div>
+          <button onclick="sendQuickPrompt('Autorizo la tramitación del borrador de arras para Calle Mayor 42')" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-medium py-1.5 rounded-lg text-xs transition">
+            Autorizar como Agente
+          </button>
+        </div>
+
+      </aside>
+
+    </div>
+
+  </main>
+
+  <!-- ================= CLIENT JAVASCRIPT ================= -->
+  <script>
+    lucide.createIcons();
+
+    const conversationHistory = [];
+    const tenantId = 'inmobia-cen-01';
+
+    function sendQuickPrompt(text) {
+      document.getElementById('chat-input').value = text;
+      handleChatSubmit(new Event('submit'));
+    }
+
+    async function handleChatSubmit(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      appendUserMessage(text);
+      conversationHistory.push({ role: 'user', content: text });
+
+      const sendBtn = document.getElementById('send-btn');
+      sendBtn.disabled = true;
+      const loadingId = appendLoadingIndicator();
+
+      const startTime = performance.now();
+
+      try {
+        const response = await fetch('api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Tenant-Id': tenantId
+          },
+          body: JSON.stringify({
+            message: text,
+            history: conversationHistory,
+            tenantId: tenantId,
+            property: {
+              address: 'Calle Mayor 42, 3ºB, Madrid',
+              price: 285000,
+              sqm: 85
+            }
+          })
+        });
+
+        const data = await response.json();
+        removeLoadingIndicator(loadingId);
+
+        if (data.ok && data.message) {
+          conversationHistory.push({ role: 'assistant', content: data.message });
+          appendAgentMessage(data.message, data.provider || 'Hostinger Ollama', data.latency_ms || Math.round(performance.now() - startTime));
+          
+          if (data.latency_ms) {
+            document.getElementById('vps-latency-badge').innerText = (data.latency_ms / 1000).toFixed(1) + 's';
+          }
+        } else {
+          appendAgentMessage("Error al procesar la respuesta: " + (data.error || 'Error desconocido'), 'Sistema', 0);
+        }
+      } catch (err) {
+        removeLoadingIndicator(loadingId);
+        appendAgentMessage("Ocurrió un problema de conexión con el backend de asesor.inmobia360.com.", 'Conexión', 0);
+      } finally {
+        sendBtn.disabled = false;
+        lucide.createIcons();
+      }
+    }
+
+    function appendUserMessage(text) {
+      const container = document.getElementById('messages-container');
+      const div = document.createElement('div');
+      div.className = 'flex items-start justify-end gap-3';
+      div.innerHTML = `
+        <div class="max-w-2xl bg-indigo-600 rounded-2xl rounded-tr-none p-3 text-xs text-white shadow-sm leading-relaxed">
+          ${escapeHtml(text)}
+        </div>
+        <div class="w-7 h-7 rounded-lg bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center shrink-0">
+          <i data-lucide="user" class="w-4 h-4 text-indigo-300"></i>
+        </div>
+      `;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+      lucide.createIcons();
+    }
+
+    function appendAgentMessage(markdownText, provider, latencyMs) {
+      const container = document.getElementById('messages-container');
+      const div = document.createElement('div');
+      div.className = 'flex items-start gap-3';
+      
+      const formattedHtml = formatMarkdown(markdownText);
+
+      div.innerHTML = `
+        <div class="w-7 h-7 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
+          <i data-lucide="bot" class="w-4 h-4 text-indigo-400"></i>
+        </div>
+        <div class="max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl rounded-tl-none p-3.5 text-xs space-y-2 shadow-sm">
+          <div class="flex items-center justify-between text-[10px] text-slate-500 border-b border-slate-800/80 pb-1.5">
+            <span class="font-medium text-indigo-400">AI BROKER</span>
+            <span class="font-mono">${provider} ${latencyMs ? '• ' + (latencyMs > 1000 ? (latencyMs/1000).toFixed(1)+'s' : latencyMs+'ms') : ''}</span>
+          </div>
+          <div class="text-slate-200 leading-relaxed space-y-2">
+            ${formattedHtml}
+          </div>
+          ${markdownText.includes('arras') || markdownText.includes('Arras') ? `
+            <div class="pt-2 border-t border-slate-800 flex items-center gap-2">
+              <button onclick="downloadArrasDoc()" class="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 px-2.5 py-1 rounded text-[11px] font-medium flex items-center gap-1.5 transition">
+                <i data-lucide="download" class="w-3 h-3"></i>
+                Descargar Documento Arras (.doc)
+              </button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+      lucide.createIcons();
+    }
+
+    function appendLoadingIndicator() {
+      const id = 'loading-' + Date.now();
+      const container = document.getElementById('messages-container');
+      const div = document.createElement('div');
+      div.id = id;
+      div.className = 'flex items-start gap-3';
+      div.innerHTML = `
+        <div class="w-7 h-7 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
+          <i data-lucide="bot" class="w-4 h-4 text-indigo-400"></i>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl rounded-tl-none px-4 py-3 text-xs text-slate-400 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
+          <span class="font-mono text-[11px]">Consultando Ollama en VPS (llama3.2:3b)...</span>
+        </div>
+      `;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+      lucide.createIcons();
+      return id;
+    }
+
+    function removeLoadingIndicator(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+
+    async function testHealth() {
+      const statusEl = document.getElementById('header-status');
+      statusEl.innerText = 'Comprobando...';
+      try {
+        const res = await fetch('api/health');
+        const data = await res.json();
+        if (data.ollama_connected) {
+          statusEl.innerText = `Online (${data.latency_ms}ms)`;
+          alert(`Diagnóstico correcto:\n- VPS Ollama: Conectado\n- Modelo: ${data.ollama_model}\n- Latencia: ${data.latency_ms}ms\n- PHP: ${data.php_version}`);
+        } else {
+          statusEl.innerText = 'Modo Respaldo';
+          alert(`Diagnóstico:\n${data.diagnostic}`);
+        }
+      } catch (e) {
+        statusEl.innerText = 'Error red';
+        alert('No se pudo contactar con api/health');
+      }
+    }
+
+    function downloadArrasDoc() {
+      const contract = `CONTRATO DE ARRAS PENITENCIALES (ART. 1454 CÓDIGO CIVIL)
+============================================================
+Fecha: ${new Date().toLocaleDateString('es-ES')}
+Expediente: EXP-2026-MAD-42
+Plataforma: asesor.inmobia360.com
+
+REUNIDOS:
+De una parte, la PARTE VENDEDORA, con DNI/NIF correspondiente.
+De otra parte, la PARTE COMPRADORA, con DNI/NIF correspondiente.
+Interviene como intermediaria la AGENCIA INMOBILIARIA (Tenant: ${tenantId}).
+
+EXPONEN:
+I.- Que la PARTE VENDEDORA es propietaria en pleno dominio del inmueble sito en:
+    Calle Mayor 42, 3º B, 28013 Madrid.
+    Referencia catastral: 9832104VK4793B0001TR.
+    Inscrito en el Registro de la Propiedad Nº 4 de Madrid.
+
+ESTIPULACIONES:
+PRIMERA.- OBJETO Y PRECIO.
+El precio total pactado para la compraventa es de 285.000,00 EUROS (DOSCIENTOS OCHENTA Y CINCO MIL EUROS).
+
+SEGUNDA.- ARRAS PENITENCIALES.
+En este acto la PARTE COMPRADORA entrega en concepto de ARRAS PENITENCIALES la cantidad de 28.500,00 EUROS (10% del precio total).
+Conforme al artículo 1454 del Código Civil español:
+- Si la PARTE COMPRADORA desistiere, perderá la cantidad entregada.
+- Si la PARTE VENDEDORA desistiere, deberá devolverlas duplicadas (57.000,00 EUROS).
+
+TERCERA.- ELEVACIÓN A ESCRITURA PÚBLICA.
+El otorgamiento de la escritura pública de compraventa se llevará a cabo ante Notario en un plazo máximo de 60 días naturales.
+
+CUARTA.- GASTOS E IMPUESTOS.
+Con arreglo a Ley (ITP a cargo de la parte compradora, Plusvalía municipal a cargo de la parte vendedora).
+
+En prueba de conformidad, firman las partes por duplicado.`;
+
+      downloadTextAsDoc('Contrato_Arras_Penitenciales_CalleMayor42.doc', contract);
+    }
+
+    function downloadEncargoDoc() {
+      const contract = `NOTA DE ENCARGO DE VENTA CON EXCLUSIVA COMPARTIDA (MLS inmobia360)
+==================================================================
+Fecha: ${new Date().toLocaleDateString('es-ES')}
+Ecosistema: asesor.inmobia360.com
+
+PROPIETARIO / CLIENTE: D./Dª __________________________
+AGENCIA INMOBILIARIA: Agencia Inmobiliaria Centro (ID: ${tenantId})
+
+INMUEBLE OBJETO:
+Dirección: Calle Mayor 42, 3º B, Madrid.
+Precio de Venta Fijado: 285.000 €
+
+CONDICIONES DE VENTA Y COLABORACIÓN:
+1. HONORARIOS PROFESIONALES: Fijados en un 4% (+ IVA) sobre el precio final pactado de compraventa.
+2. MODELO MULTI-AGENCIA 50/50: La AGENCIA queda expresamente facultada para compartir el encargo en el ecosistema MLS inmobia360 con el resto de agencias colaboradoras, repartiendo los honorarios al 50% con la agencia que aporte al comprador.
+3. PLAZO: 6 meses a contar desde la firma.
+4. CONFIDENCIALIDAD: Protección de datos ciegos para prevenir el puenteo comercial.
+
+Firma del Propietario                  Firma y Sello de la Agencia`;
+
+      downloadTextAsDoc('Nota_Encargo_Venta_50_50_CalleMayor42.doc', contract);
+    }
+
+    function downloadTextAsDoc(filename, text) {
+      const blob = new Blob([text], { type: 'application/msword;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function formatMarkdown(str) {
+      let out = escapeHtml(str);
+      out = out.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>');
+      out = out.replace(/### (.*?)\n/g, '<h4 class="text-xs font-bold text-indigo-300 mt-2 mb-1 uppercase tracking-wide">$1</h4>');
+      out = out.replace(/^[-*] (.*)$/gm, '<div class="flex items-start gap-1.5 ml-1">• <span>$1</span></div>');
+      out = out.replace(/^([0-9]+)\. (.*)$/gm, '<div class="flex items-start gap-1.5 ml-1"><span class="font-mono text-indigo-400 font-bold">$1.</span> <span>$2</span></div>');
+      out = out.replace(/`([^`]+)`/g, '<code class="bg-slate-800 text-indigo-300 px-1 py-0.5 rounded font-mono text-[11px]">$1</code>');
+      out = out.replace(/\n\n/g, '<div class="h-1.5"></div>');
+      return out;
+    }
+
+    function showSection(name) {
+      alert("Sección de " + name + " activa con aislamiento tenant_id (inmobia-cen-01).");
+    }
+  </script>
+</body>
+</html>

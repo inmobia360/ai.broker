@@ -1,4 +1,4 @@
-﻿FROM node:20-alpine AS base
+FROM node:20-alpine AS base
 
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
@@ -26,6 +26,6 @@ COPY --from=builder /app/package.json ./package.json
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
-ENV HOSTNAME=" 0.0.0.0\
+ENV HOSTNAME="0.0.0.0"
 
-CMD [\npm\, \start\]
+CMD ["npm", "start"]
