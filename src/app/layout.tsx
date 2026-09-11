@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI BROKER | inmobia360",
+  title: "AI BROKER | asesor.inmobia360.com",
   description: "Plataforma SaaS marca blanca para agencias y profesionales inmobiliarios",
 };
 

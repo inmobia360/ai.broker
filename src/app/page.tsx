@@ -232,7 +232,7 @@ CUARTA.- GASTOS E IMPUESTOS segun ley.
             <span>Aislamiento tenant_id activo</span>
           </div>
           <div className="text-slate-500 font-mono text-[11px]">
-            broker.inmobia360.com
+            asesor.inmobia360.com
           </div>
         </div>
       </aside>
@@ -247,7 +247,7 @@ CUARTA.- GASTOS E IMPUESTOS segun ley.
               Ecosistema inmobia360
             </span>
             <span className="text-xs text-slate-500">|</span>
-            <span className="text-xs text-slate-400">Dominio: broker.inmobia360.com</span>
+            <span className="text-xs text-slate-400">Dominio: asesor.inmobia360.com</span>
           </div>
           <div className="flex items-center gap-2">
             <a 
