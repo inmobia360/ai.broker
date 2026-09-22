@@ -1,6 +1,7 @@
 import { BaseSpecialistSubagent } from "./base.ts";
 import type { SpecialistDomain, SpecialistTaskRequest, SpecialistResponse, SpecialistDraftProposal } from "./types.ts";
 import { generateArrasPenitencialesContract } from "../../legal/spain/arras.ts";
+import { generateLauContract } from "../../legal/spain/lau.ts";
 
 export class LegalSpecialistSubagent extends BaseSpecialistSubagent {
   readonly domain: SpecialistDomain = "legal";
@@ -39,29 +40,27 @@ export class LegalSpecialistSubagent extends BaseSpecialistSubagent {
         }
       };
     } else if (lower.includes("alquiler") || lower.includes("arrendamiento") || lower.includes("lau")) {
-      analysis = "Análisis jurídico: La relación arrendaticia de vivienda habitual se rige por la Ley 29/1994 de Arrendamientos Urbanos (LAU). Es imperativo reflejar la duración mínima de 5 años si el arrendador es persona física (7 años si es jurídica), prórrogas obligatorias y la fianza legal de una mensualidad.";
+      analysis = "Análisis jurídico: La relación arrendaticia de vivienda habitual se rige por la Ley 29/1994 de Arrendamientos Urbanos (LAU) y Ley 12/2023. Es imperativo reflejar la duración mínima de 5 años si el arrendador es persona física (7 años si es jurídica), prórrogas obligatorias, fianza legal obligatoria de una mensualidad (art. 36 LAU) y gastos de gestión inmobiliaria a cargo del arrendador.";
+      
+      const lauDoc = generateLauContract({
+        municipio: req.context?.municipio,
+        fecha: req.context?.fecha,
+        arrendador: req.context?.arrendador,
+        arrendatario: req.context?.arrendatario,
+        inmueble: req.context?.inmueble,
+        condiciones: req.context?.condiciones
+      });
+
       draftProposal = {
         documentType: "lau",
-        title: "Borrador de Contrato de Arrendamiento de Vivienda Habitual (LAU)",
-        summary: "Contrato de alquiler conforme a la Ley de Arrendamientos Urbanos (LAU 29/1994) con fianza legal obligatoria y desglose de suministros.",
-        content: `CONTRATO DE ARRENDAMIENTO DE VIVIENDA HABITUAL (LEY 29/1994 LAU)
-[BORRADOR GENERADO POR ASISTENTE JURÍDICO - REVISIÓN HUMANA OBLIGATORIA]
-
-En [PENDIENTE: MUNICIPIO], a [PENDIENTE: FECHA].
-
-REUNIDOS:
-ARRENDADOR: [PENDIENTE: NOMBRE_ARRENDADOR], DNI [PENDIENTE: DNI_ARRENDADOR].
-ARRENDATARIO: [PENDIENTE: NOMBRE_ARRENDATARIO], DNI [PENDIENTE: DNI_ARRENDATARIO].
-
-CLÁUSULAS:
-PRIMERA.- DURACIÓN Y PRÓRROGAS.
-El plazo de duración pactado es de UN AÑO, prorrogable obligatoriamente hasta alcanzar cinco años (o siete si el arrendador fuese persona jurídica) conforme al art. 9 de la LAU.
-
-SEGUNDA.- RENTA Y ACTUALIZACIÓN.
-La renta mensual pactada es de [PENDIENTE: RENTA_MENSUAL] euros, pagadera dentro de los siete primeros días de cada mes.
-
-TERCERA.- FIANZA LEGAL.
-A la firma del presente contrato, el ARRENDATARIO entrega la cantidad de [PENDIENTE: FIANZA_1_MES] euros correspondiente a una mensualidad de renta en concepto de fianza legal obligatoria (art. 36 LAU).`
+        title: lauDoc.title,
+        summary: "Contrato de arrendamiento residencial de vivienda habitual conforme a la Ley 29/1994 (LAU) y Ley 12/2023.",
+        content: lauDoc.contractText,
+        metadata: {
+          legalReference: lauDoc.legalReference,
+          detectedPendingFields: lauDoc.detectedPendingFields,
+          isComplete: lauDoc.isComplete
+        }
       };
     } else if (lower.includes("visita") || lower.includes("honorarios") || lower.includes("corretaje")) {
       analysis = "Análisis jurídico: El parte de visita requiere blindar el reconocimiento de gestión inmobiliaria y el devengo de honorarios en caso de formalizarse la compraventa o alquiler con el interesado presentado.";

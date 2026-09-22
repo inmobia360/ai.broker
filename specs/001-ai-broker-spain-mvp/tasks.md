@@ -51,7 +51,7 @@ Cada tarea indica los Requisitos Funcionales (RF) que cubre y su condición veri
   - **Cubre**: RF-8.
   - **Hecho cuando**: El test `test_legal_spain.ts` verifica que el borrador incluya las cláusulas del Art. 1454 del Código Civil, el importe de la señal y detecte campos ausentes con etiquetas `[PENDIENTE]` sin inventar datos.
 
-- [ ] **T10: Generador de Contrato de Alquiler Residencial (LAU)**
+- [x] **T10: Generador de Contrato de Alquiler Residencial (LAU)**
   - **Cubre**: RF-9.
   - **Hecho cuando**: El módulo genera el contrato de arrendamiento incorporando la duración legal mínima, prórrogas y cláusula de fianza legal obligatoria según la Ley 29/1994.
 
