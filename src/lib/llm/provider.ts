@@ -43,8 +43,10 @@ export class InmobiaLLMProvider {
     this.groqKey = process.env.GROQ_API_KEY;
     this.geminiKey = process.env.GEMINI_API_KEY;
 
-    // Timeout por defecto fijado en 12.000 ms (12 segundos) conforme al requisito RF-12
-    this.defaultTimeoutMs = options?.defaultTimeoutMs ?? 12000;
+    // Timeout configurable por entorno (por defecto 12s, o 30s para inferencia CPU en VPS)
+    this.defaultTimeoutMs = process.env.AI_TIMEOUT_MS
+      ? parseInt(process.env.AI_TIMEOUT_MS, 10)
+      : (options?.defaultTimeoutMs ?? 12000);
   }
 
   /**
