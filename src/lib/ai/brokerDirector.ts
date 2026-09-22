@@ -11,6 +11,10 @@ import { DealRangeCalculator } from "../negotiation/dealRangeCalculator.ts";
 import { ContingencyChecker } from "../legal/spain/contingencyChecker.ts";
 import { DemandMatcher } from "../matching/demandMatcher.ts";
 import { OperationalMemoryStore } from "../memory/operationalMemoryStore.ts";
+import { CmaValuator } from "../valuation/cmaValuator.ts";
+import { NeighborhoodAnalyzer } from "../geo/neighborhoodAnalyzer.ts";
+import { DeepLinkGenerator } from "../geo/deepLinkGenerator.ts";
+import { ListingCopyGenerator } from "../marketing/listingCopyGenerator.ts";
 
 const SYSTEM_PROMPT_DIRECTOR_BROKER = `Eres el Director BROKER, la máxima autoridad cognitiva y de supervisión de la agencia inmobiliaria en España (broker.inmobia360.com).
 Coordinas un equipo de asistentes técnicos especializados (Legal, Comercial, Marketing) para prestar soporte integral a los agentes independientes y directores.
@@ -251,7 +255,96 @@ export class BrokerDirector {
       );
     }
 
-    // 6. Recuperación de Memoria Operativa Estructurada (RAG Few-Shot)
+    // 6. Prevaloración Rápida ACM (RF-CMA2, RF-CMA3)
+    if (lower.includes("tasar") || lower.includes("prevalora") || lower.includes("acm") || lower.includes("valorar") || lower.includes("/tasar")) {
+      const m2Match = userMessage.match(/(\d+)\s*(m2|m²|metros)/i);
+      const builtM2 = m2Match ? parseInt(m2Match[1], 10) : 95;
+      
+      const cmaResult = await CmaValuator.calculateValuation(tenantId, {
+        address: userMessage.includes("madrid") || userMessage.includes("serrano") ? "Calle Serrano 88, Madrid" : "Calle Mayor 12, Casco Urbano",
+        builtM2,
+        bedrooms: 3,
+        bathrooms: 2,
+        constructionYear: 1985,
+        hasElevator: true,
+        condition: lower.includes("reformar") ? "a_reformar" : "buen_estado"
+      });
+
+      specialistReports.push(
+        `[Motor de Prevaloración ACM]: ${cmaResult.valuationSummary}. Horquilla de salida: ${cmaResult.recommendedListingPrice.toLocaleString("es-ES")} € (${cmaResult.estimatedPricePerM2} €/m²). Cierre notarial estimado: ${cmaResult.estimatedClosingPrice.toLocaleString("es-ES")} €.`
+      );
+
+      actionProposals.push({
+        id: cmaResult.dossierReportDraft.id,
+        tenantId,
+        title: cmaResult.dossierReportDraft.title,
+        description: `Dossier ACM de valoración maquetado para la visita de captación (${cmaResult.recommendedListingPrice.toLocaleString("es-ES")} €).`,
+        actionType: "generate_contract",
+        payload: {
+          draftId: cmaResult.dossierReportDraft.id,
+          documentType: cmaResult.dossierReportDraft.documentType,
+          content: cmaResult.dossierReportDraft.content,
+          status: cmaResult.dossierReportDraft.status
+        },
+        requiresHumanApproval: true,
+        status: "pending",
+        createdAt: cmaResult.dossierReportDraft.createdAt
+      });
+    }
+
+    // 7. Análisis de Micro-Zona y Enlaces 3D (RF-CMA1, RF-CMA5)
+    if (lower.includes("entorno") || lower.includes("microzona") || lower.includes("dotaciones") || lower.includes("colegios cerca") || lower.includes("/entorno")) {
+      const address = userMessage.includes("barcelona") || userMessage.includes("eixample") 
+        ? "Carrer de Girona, Eixample, Barcelona" 
+        : "Calle Serrano 88, Salamanca, Madrid";
+      
+      const neighborhood = await NeighborhoodAnalyzer.analyzeNeighborhood(address);
+      const links = DeepLinkGenerator.generateLinks({
+        lat: neighborhood.coordinates.lat,
+        lon: neighborhood.coordinates.lon,
+        propertyAddress: address
+      });
+
+      specialistReports.push(
+        `[Análisis de Micro-Zona]: ${neighborhood.summaryReport} Enlace Satélite: ${links.googleMapsSatellite} | Perspectiva 3D: ${links.googleEarth3D}`
+      );
+    }
+
+    // 8. Generación de Anuncio Comercial para Portales (RF-CMA4)
+    if (lower.includes("anuncio") || lower.includes("copy") || lower.includes("redacta anuncio") || lower.includes("/anuncio")) {
+      const copyResult = await ListingCopyGenerator.generateListingCopy(tenantId, {
+        address: userMessage.includes("valencia") ? "Carrer de Russafa 14, Valencia" : "Calle Serrano 88, Madrid",
+        price: 450000,
+        builtM2: 110,
+        bedrooms: 3,
+        bathrooms: 2,
+        hasElevator: true,
+        hasTerrace: true
+      });
+
+      specialistReports.push(
+        `[Generador de Copys Comerciales]: Anuncio redactado con dotaciones de barrio (${copyResult.headline}). Enlaces 3D preparados.`
+      );
+
+      actionProposals.push({
+        id: copyResult.draft.id,
+        tenantId,
+        title: copyResult.draft.title,
+        description: `Borrador de anuncio publicitario para Idealista/Fotocasa con dotaciones reales.`,
+        actionType: "publish_draft",
+        payload: {
+          draftId: copyResult.draft.id,
+          documentType: copyResult.draft.documentType,
+          content: copyResult.draft.content,
+          status: copyResult.draft.status
+        },
+        requiresHumanApproval: true,
+        status: "pending",
+        createdAt: copyResult.draft.createdAt
+      });
+    }
+
+    // 9. Recuperación de Memoria Operativa Estructurada (RAG Few-Shot)
     const similarCases = await OperationalMemoryStore.retrieveSimilarCases(tenantId, userMessage, { limit: 2, minSimilarity: 0.60 });
     const memoryContext = OperationalMemoryStore.formatFewShotContext(similarCases);
 
