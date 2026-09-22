@@ -1,7 +1,7 @@
 export interface TenantAuditLog {
   id: string;
   timestamp: string;
-  eventType: 'CROSS_TENANT_ACCESS_ATTEMPT' | 'UNAUTHORIZED_TENANT_ACCESS' | 'INVALID_TENANT_FORMAT';
+  eventType: 'CROSS_TENANT_ACCESS_ATTEMPT' | 'UNAUTHORIZED_TENANT_ACCESS' | 'INVALID_TENANT_FORMAT' | 'UNAPPROVED_TRANSMISSION_ATTEMPT' | 'DRAFT_GUARD_VIOLATION';
   severity: 'HIGH' | 'CRITICAL' | 'WARNING';
   authenticatedTenantId?: string;
   attemptedTenantId?: string;

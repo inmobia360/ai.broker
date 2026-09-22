@@ -6,6 +6,7 @@ import { LegalSpecialistSubagent } from "./subagents/legalSpecialist.ts";
 import { CommercialSpecialistSubagent } from "./subagents/commercialSpecialist.ts";
 import { MarketingSpecialistSubagent } from "./subagents/marketingSpecialist.ts";
 import type { SpecialistDomain, SpecialistResponse } from "./subagents/types.ts";
+import { DraftGuard } from "../security/draftGuard.ts";
 
 const SYSTEM_PROMPT_DIRECTOR_BROKER = `Eres el Director BROKER, la máxima autoridad cognitiva y de supervisión de la agencia inmobiliaria en España (broker.inmobia360.com).
 Coordinas un equipo de asistentes técnicos especializados (Legal, Comercial, Marketing) para prestar soporte integral a los agentes independientes y directores.
@@ -85,20 +86,29 @@ export class BrokerDirector {
       specialistReports.push(`[Informe Especialista Jurídico]: ${legalRes.analysis}`);
 
       if (legalRes.draftProposal) {
-        actionProposals.push({
-          id: `draft-${Date.now()}-${legalRes.draftProposal.documentType}`,
-          tenantId,
+        const savedDraft = DraftGuard.createDraft(tenantId, {
+          documentType: legalRes.draftProposal.documentType,
           title: legalRes.draftProposal.title,
+          content: legalRes.draftProposal.content,
+          metadata: { specialistDomain: "legal", summary: legalRes.draftProposal.summary }
+        });
+
+        actionProposals.push({
+          id: savedDraft.id,
+          tenantId,
+          title: savedDraft.title,
           description: legalRes.draftProposal.summary,
           actionType: "generate_contract",
           payload: {
-            documentType: legalRes.draftProposal.documentType,
-            content: legalRes.draftProposal.content,
+            draftId: savedDraft.id,
+            documentType: savedDraft.documentType,
+            content: savedDraft.content,
+            status: savedDraft.status,
             requiresReview: true
           },
           requiresHumanApproval: true,
           status: "pending",
-          createdAt: new Date()
+          createdAt: savedDraft.createdAt
         });
       }
     }
@@ -121,20 +131,29 @@ export class BrokerDirector {
       specialistReports.push(`[Informe Especialista Comercial]: ${commRes.analysis}`);
 
       if (commRes.draftProposal) {
-        actionProposals.push({
-          id: `draft-${Date.now()}-buyer-qual`,
-          tenantId,
+        const savedDraft = DraftGuard.createDraft(tenantId, {
+          documentType: commRes.draftProposal.documentType,
           title: commRes.draftProposal.title,
+          content: commRes.draftProposal.content,
+          metadata: { specialistDomain: "commercial", summary: commRes.draftProposal.summary }
+        });
+
+        actionProposals.push({
+          id: savedDraft.id,
+          tenantId,
+          title: savedDraft.title,
           description: commRes.draftProposal.summary,
           actionType: "update_case_status",
           payload: {
-            documentType: commRes.draftProposal.documentType,
-            content: commRes.draftProposal.content,
+            draftId: savedDraft.id,
+            documentType: savedDraft.documentType,
+            content: savedDraft.content,
+            status: savedDraft.status,
             recommendedAction: "immediate_call"
           },
           requiresHumanApproval: true,
           status: "pending",
-          createdAt: new Date()
+          createdAt: savedDraft.createdAt
         });
       }
     }
@@ -157,19 +176,28 @@ export class BrokerDirector {
       specialistReports.push(`[Informe Especialista Marketing]: ${mktRes.analysis}`);
 
       if (mktRes.draftProposal) {
-        actionProposals.push({
-          id: `draft-${Date.now()}-ad-listing`,
-          tenantId,
+        const savedDraft = DraftGuard.createDraft(tenantId, {
+          documentType: mktRes.draftProposal.documentType,
           title: mktRes.draftProposal.title,
+          content: mktRes.draftProposal.content,
+          metadata: { specialistDomain: "marketing", summary: mktRes.draftProposal.summary }
+        });
+
+        actionProposals.push({
+          id: savedDraft.id,
+          tenantId,
+          title: savedDraft.title,
           description: mktRes.draftProposal.summary,
           actionType: "publish_draft",
           payload: {
-            documentType: mktRes.draftProposal.documentType,
-            content: mktRes.draftProposal.content
+            draftId: savedDraft.id,
+            documentType: savedDraft.documentType,
+            content: savedDraft.content,
+            status: savedDraft.status
           },
           requiresHumanApproval: true,
           status: "pending",
-          createdAt: new Date()
+          createdAt: savedDraft.createdAt
         });
       }
     }

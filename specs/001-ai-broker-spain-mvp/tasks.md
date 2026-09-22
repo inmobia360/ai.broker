@@ -35,7 +35,7 @@ Cada tarea indica los Requisitos Funcionales (RF) que cubre y su condición veri
   - **Cubre**: RF-4.
   - **Hecho cuando**: Todas las consultas de chat inmobiliario entran por `brokerDirector.ts` y ningún subagente expone endpoints directos al usuario final.
 
-- [ ] **T7: Guardián de Borrador Seguro (Draft Guard)**
+- [x] **T7: Guardián de Borrador Seguro (Draft Guard)**
   - **Cubre**: RF-5, RF-6.
   - **Hecho cuando**: Toda generación de texto o contrato se persiste en `drafts` con estado `draft_pending` y cualquier intento de emisión exterior sin firma de aprobación lanza una excepción controlada.
 
