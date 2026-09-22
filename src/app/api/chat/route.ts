@@ -1,30 +1,37 @@
 import { NextResponse } from "next/server";
-import { BrokerOrchestrator } from "@/lib/broker";
+import { BrokerDirector } from "@/lib/ai/brokerDirector";
+import { enforceTenantAccess } from "@/lib/security/tenantGuard";
 
 export async function POST(req: Request) {
   try {
-    const host = req.headers.get("host") || "";
-    // Resolucion automatica de subdominio inmobia360 (ej: broker.inmobia360.com -> inmobia360)
-    let autoTenant = "inmobia360";
-    if (host.includes(".inmobia360.com")) {
-      autoTenant = host.split(".")[0];
+    const body = await req.json();
+    const { message, tenantId: bodyTenantId, history = [] } = body;
+
+    // Validación perimetral de seguridad multi-tenant (RF-1, RF-3)
+    const authResult = enforceTenantAccess(req, bodyTenantId);
+    if (!authResult.authorized) {
+      return NextResponse.json(
+        { error: authResult.error },
+        { status: authResult.statusCode }
+      );
     }
 
-    const body = await req.json();
-    const { message, tenantId = autoTenant, history = [] } = body;
+    const verifiedTenantId = authResult.tenantId!;
 
     if (!message || typeof message !== "string") {
       return NextResponse.json({ error: "Mensaje requerido" }, { status: 400 });
     }
 
-    const orchestrator = new BrokerOrchestrator(tenantId);
-    const result = await orchestrator.processMessage(message, history);
+    // Canalización exclusiva a través del Director BROKER (RF-4)
+    const director = new BrokerDirector(verifiedTenantId);
+    const result = await director.processUserMessage(message, history);
 
     return NextResponse.json({
       reply: result.reply,
       provider: result.provider,
       actionProposals: result.actionProposals,
-      tenantId
+      delegatedSpecialists: result.delegatedSpecialists,
+      tenantId: verifiedTenantId
     });
   } catch (err: any) {
     return NextResponse.json({

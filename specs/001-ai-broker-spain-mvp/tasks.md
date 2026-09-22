@@ -11,15 +11,15 @@ Cada tarea indica los Requisitos Funcionales (RF) que cubre y su condición veri
   - **Cubre**: Base de infraestructura para RF-1 y RF-11.
   - **Hecho cuando**: El archivo `docker-compose.yml` levanta PostgreSQL 16 con extensión pgvector y el contenedor Ollama en el puerto 11434 sin errores.
 
-- [ ] **T2: Esquema de base de datos relacional y políticas RLS**
+- [x] **T2: Esquema de base de datos relacional y políticas RLS**
   - **Cubre**: RF-1, RF-3.
   - **Hecho cuando**: El script SQL de migraciones crea las tablas `tenants`, `users`, `invitations`, `dossiers`, `drafts`, `agency_memory_vectors` con `tenant_id` obligatorio y políticas `ENABLE ROW LEVEL SECURITY` activadas.
 
-- [ ] **T3: Contexto de seguridad y extracción de Tenant en Middleware**
+- [x] **T3: Contexto de seguridad y extracción de Tenant en Middleware**
   - **Cubre**: RF-1, RF-3.
   - **Hecho cuando**: El test unitario `test_tenant_guard.ts` comprueba que una petición sin cabecera o token de tenant válido devuelva 401/403 y no permita consultar datos.
 
-- [ ] **T4: Sistema de invitaciones y registro con vinculación de Tenant**
+- [x] **T4: Sistema de invitaciones y registro con vinculación de Tenant**
   - **Cubre**: RF-2.
   - **Hecho cuando**: Un usuario puede consumir un token de invitación válido, registrarse y quedar asignado al `tenant_id` del enlace, invalidando el token usado.
 
@@ -27,11 +27,11 @@ Cada tarea indica los Requisitos Funcionales (RF) que cubre y su condición veri
 
 ### Fase 2: Motor Cognitivo BROKER y Modo Borrador Seguro
 
-- [ ] **T5: Cliente Ollama local con fallback de seguridad**
+- [x] **T5: Cliente Ollama local con fallback de seguridad**
   - **Cubre**: RF-11, RF-12.
   - **Hecho cuando**: `ollamaClient.ts` envía peticiones a `llama3.1:8b` local y el test de timeout (>12s) demuestra la conmutación al fallback en menos de 100 ms sin abortar la ejecución.
 
-- [ ] **T6: Orquestador central Director BROKER (Interlocutor único)**
+- [x] **T6: Orquestador central Director BROKER (Interlocutor único)**
   - **Cubre**: RF-4.
   - **Hecho cuando**: Todas las consultas de chat inmobiliario entran por `brokerDirector.ts` y ningún subagente expone endpoints directos al usuario final.
 

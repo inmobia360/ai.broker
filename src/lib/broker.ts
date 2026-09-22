@@ -1,58 +1,45 @@
-import { inmobiaLLM, LLMMessage } from "./llm/provider";
-import { TenantContext } from "./tenant";
-import { BrokerActionProposal } from "../types";
+import { BrokerDirector } from "./ai/brokerDirector.ts";
+import type { BrokerDirectorResult } from "./ai/brokerDirector.ts";
+import type { LLMMessage } from "./llm/provider.ts";
+import type { BrokerActionProposal } from "../types/index.ts";
 
-const SYSTEM_PROMPT_BROKER_SPAIN = `Eres BROKER, el copiloto de inteligencia artificial inmobiliaria para agencias en Espana, integrado en el ecosistema inmobia360 (broker.inmobia360.com).
-Tu funcion es asistir al agente inmobiliario en la gestion de expedientes, contratos de arras, mandatos de venta, notas simples del registro y normativa inmobiliaria espanola (Ley de Arrendamientos Urbanos - LAU, Ley por el Derecho a la Vivienda, Codigo Civil).
+export { BrokerDirector };
+export type { BrokerDirectorResult };
 
-NORMAS INVIOLABLES DE TU CONSTITUCION:
-1. Eres el unico interlocutor directo con el profesional inmobiliario y el unico autorizado a proponer memoria canonica.
-2. Nunca realizas acciones externas que modifiquen datos reales sin pedir confirmacion y autorizacion explicita al usuario humano.
-3. Proteges los datos personales (PII) de compradores, vendedores e inquilinos; no almacenes DNI o datos bancarios en texto plano.
-4. Si detectas la necesidad de una accion relevante (generar borrador de contrato, solicitar documentacion, avanzar estado de expediente), formula la propuesta claramente indicando que requiere autorizacion del usuario.
-5. Responde siempre con profesionalidad, claridad juridica y rigor tecnico en espanol de Espana.`;
-
+/**
+ * BrokerOrchestrator implementa la fachada del Director BROKER
+ * manteniendo compatibilidad y canalizando a través de BrokerDirector (RF-4).
+ */
 export class BrokerOrchestrator {
-  private tenantCtx: TenantContext;
+  private director: BrokerDirector;
 
   constructor(tenantId: string) {
-    this.tenantCtx = new TenantContext(tenantId);
+    this.director = new BrokerDirector(tenantId);
+  }
+
+  getTenantId(): string {
+    return this.director.getTenantId();
   }
 
   async processMessage(
-    userMessage: string, 
+    userMessage: string,
     conversationHistory: LLMMessage[] = []
-  ): Promise<{ reply: string; provider: string; actionProposals: BrokerActionProposal[] }> {
-    const tenantId = this.tenantCtx.getTenantId();
-
-    const messages: LLMMessage[] = [
-      { role: "system", content: SYSTEM_PROMPT_BROKER_SPAIN },
-      ...conversationHistory,
-      { role: "user", content: userMessage }
-    ];
-
-    const llmRes = await inmobiaLLM.generateReply(messages);
-    const reply = llmRes.content;
-    const actionProposals: BrokerActionProposal[] = [];
-
-    if (reply.toLowerCase().includes("arras") || reply.toLowerCase().includes("contrato")) {
-      actionProposals.push({
-        id: `prop-${Date.now()}-1`,
-        tenantId,
-        title: "Generacion de Borrador de Contrato",
-        description: "Borrador contractual preparado segun normativa espanola (Art. 1454 Codigo Civil). Requiere validacion humana.",
-        actionType: "generate_contract",
-        payload: { summary: "Contrato de arras / mandato preparado para revision" },
-        requiresHumanApproval: true,
-        status: "pending",
-        createdAt: new Date()
-      });
-    }
-
+  ): Promise<{
+    reply: string;
+    provider: string;
+    latencyMs: number;
+    fallbackUsed: boolean;
+    actionProposals: BrokerActionProposal[];
+    delegatedSpecialists?: string[];
+  }> {
+    const result = await this.director.processUserMessage(userMessage, conversationHistory);
     return {
-      reply,
-      provider: llmRes.provider,
-      actionProposals
+      reply: result.reply,
+      provider: result.provider,
+      latencyMs: result.latencyMs,
+      fallbackUsed: result.fallbackUsed,
+      actionProposals: result.actionProposals,
+      delegatedSpecialists: result.delegatedSpecialists
     };
   }
 }
