@@ -10,7 +10,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ai-broker.entrypoints=websecure"
-      - "traefik.http.routers.ai-broker.rule=Host(`asesor.inmobia360.com`)"
+      - "traefik.http.routers.ai-broker.rule=Host(`asesor.inmobia360.com`) || Host(`asesor.puntoinmobia360.com`) || Host(`asesor.puntoinmomia360.com`)"
       - "traefik.http.routers.ai-broker.tls.certresolver=letsencrypt"
       - "traefik.http.services.ai-broker.loadbalancer.server.port=3000"
     env_file:
