@@ -39,7 +39,7 @@ Cada tarea indica los Requisitos Funcionales (RF) que cubre y su condición veri
   - **Cubre**: RF-5, RF-6.
   - **Hecho cuando**: Toda generación de texto o contrato se persiste en `drafts` con estado `draft_pending` y cualquier intento de emisión exterior sin firma de aprobación lanza una excepción controlada.
 
-- [ ] **T8: Módulo de aprobación humana y selección de canal de salida**
+- [x] **T8: Módulo de aprobación humana y selección de canal de salida**
   - **Cubre**: RF-7.
   - **Hecho cuando**: El endpoint de aprobación actualiza el estado a `approved` con `approved_by` y genera los enlaces de descarga PDF, enlace de WhatsApp web o correo listos para el agente.
 
