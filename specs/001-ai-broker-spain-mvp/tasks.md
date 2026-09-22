@@ -63,7 +63,7 @@ Cada tarea indica los Requisitos Funcionales (RF) que cubre y su condición veri
 
 ### Fase 4: Memoria Vectorial y Verificación de Calidad
 
-- [ ] **T12: Almacén vectorial aislado por agencia (pgvector)**
+- [x] **T12: Almacén vectorial aislado por agencia (pgvector)**
   - **Cubre**: RF-13.
   - **Hecho cuando**: El test de inserción y consulta comprueba que los vectores de un tenant nunca son recuperados en las búsquedas semánticas de otro tenant.
 

@@ -20,7 +20,7 @@ Estado del hito: **En desarrollo incremental (Fase 1 iniciada)**.
 | **RF-10: Parte de Visita** | CUANDO prepara visita, EL SISTEMA incluye pacto de honorarios | `tests/test_legal_spain.test.ts` | APROBADO | Módulo `src/lib/legal/spain/visita.ts` incluye pacto de corretaje, periodo de exclusividad, RGPD y preparación para firma en pantalla |
 | **RF-11: Inferencia Local Privada** | EL SISTEMA procesa en Ollama VPS Hostinger (`llama3.1:8b`) | Inferencia local verificada | APROBADO | Contenedor Ollama operativo (`llama3.1:8b`) |
 | **RF-12: Fallback Cognitivo** | SI Ollama supera 12s, ENTONCES conmuta a fallback secundario | `tests/test_ollama_fallback.test.ts` | APROBADO | Timeout 12s + Conmutación automática a motor cognitivo en <1ms verificada |
-| **RF-13: Búsqueda Vectorial Aislada** | CUANDO consulta memoria, EL SISTEMA filtra por `tenant_id` | `test_vector_isolation.ts` | PENDIENTE | Por ejecutar en T12 |
+| **RF-13: Búsqueda Vectorial Aislada** | CUANDO consulta memoria, EL SISTEMA filtra por `tenant_id` | `tests/test_vector_isolation.test.ts` | APROBADO | Módulo `src/lib/db/vectorStore.ts` garantiza embeddings de 768 dimensiones y cero fugas entre agencias en búsquedas semánticas |
 
 ---
 
