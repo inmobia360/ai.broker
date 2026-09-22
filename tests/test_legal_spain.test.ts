@@ -5,6 +5,7 @@ import {
   formatCurrencySpain
 } from '../src/lib/legal/spain/arras.ts';
 import { generateLauContract } from '../src/lib/legal/spain/lau.ts';
+import { generateVisitSheet } from '../src/lib/legal/spain/visita.ts';
 import { BrokerDirector } from '../src/lib/ai/brokerDirector.ts';
 
 describe('T9: Generador de Contrato de Arras Penitenciales (Art. 1454 C.C. - RF-8)', () => {
@@ -254,4 +255,108 @@ describe('T10: Generador de Contrato de Alquiler Residencial (LAU 29/1994 - RF-9
     assert.strictEqual(proposal.requiresHumanApproval, true);
   });
 });
+
+describe('T11: Generador de Hoja de Visita con Blindaje de Honorarios (RF-10)', () => {
+  const tenantId = '00000000-0000-4000-8000-000000000001';
+
+  test('Genera hoja de visita con identificación de finca, visitante y fecha/hora (RF-10)', () => {
+    const sheet = generateVisitSheet({
+      inmueble: {
+        direccion: 'Calle Serrano 45, 2º Izq, Madrid',
+        referenciaCatastral: '1234567AB1234S0001MN'
+      },
+      visitante: {
+        nombreCompleto: 'Gonzalo Fernández Rico',
+        dniNie: '55443322D',
+        telefono: '+34 699 00 11 22'
+      },
+      fechaVisita: '22 de octubre de 2026',
+      horaVisita: '17:30'
+    });
+
+    assert.strictEqual(sheet.documentType, 'visita');
+    assert.ok(sheet.sheetText.includes('HOJA DE VISITA Y RECONOCIMIENTO DE GESTIÓN INMOBILIARIA'));
+    assert.ok(sheet.sheetText.includes('Gonzalo Fernández Rico'));
+    assert.ok(sheet.sheetText.includes('55443322D'));
+    assert.ok(sheet.sheetText.includes('Calle Serrano 45, 2º Izq, Madrid'));
+    assert.ok(sheet.sheetText.includes('17:30'));
+    assert.strictEqual(sheet.readyForDigitalSignature, true, 'Debe estar preparada para firma en pantalla');
+  });
+
+  test('Incorpora cláusula de blindaje y pacto formal de honorarios con periodo de exclusividad (RF-10)', () => {
+    const sheet = generateVisitSheet({
+      honorarios: {
+        porcentajeHonorariosVenta: 4.0,
+        periodoValidezMeses: 12
+      }
+    });
+
+    assert.ok(sheet.sheetText.includes('4% del precio final'));
+    assert.ok(sheet.sheetText.includes('12 MESES'));
+    assert.ok(sheet.sheetText.includes('honorarios profesionales de corretaje convenidos'));
+    assert.ok(sheet.sheetText.includes('RGPD Y LOPD-GDD 3/2018'));
+    assert.strictEqual(sheet.summary.porcentajeHonorarios, 4.0);
+  });
+
+  test('Detecta campos ausentes con etiquetas [PENDIENTE: ...] sin inventar datos (Casos Límite)', () => {
+    const sheet = generateVisitSheet({
+      // Visitante sin DNI
+      visitante: {
+        nombreCompleto: 'Marta Soler'
+      }
+      // Sin dirección de inmueble
+    });
+
+    assert.strictEqual(sheet.isComplete, false);
+    assert.ok(sheet.detectedPendingFields.includes('DNI_VISITANTE'));
+    assert.ok(sheet.detectedPendingFields.includes('DIRECCION_INMUEBLE'));
+    assert.ok(sheet.detectedPendingFields.includes('REFERENCIA_CATASTRAL'));
+    assert.ok(sheet.sheetText.includes('[PENDIENTE: DNI_VISITANTE]'));
+    assert.ok(sheet.sheetText.includes('[PENDIENTE: DIRECCION_INMUEBLE]'));
+  });
+
+  test('Genera hoja de visita completa y lista para firma digital en pantalla', () => {
+    const sheet = generateVisitSheet({
+      agencia: {
+        nombreAgencia: 'Inmobia 360 Madrid',
+        nombreAgente: 'Sergio Ramos Martínez'
+      },
+      visitante: {
+        nombreCompleto: 'Lucía Blanco Santos',
+        dniNie: '77889900K',
+        telefono: '611223344',
+        email: 'lucia.blanco@email.com'
+      },
+      inmueble: {
+        direccion: 'Calle Velázquez 80, 5ºB, Madrid',
+        referenciaCatastral: '9988776AB5432S0001OP'
+      },
+      honorarios: {
+        porcentajeHonorariosVenta: 3.5,
+        periodoValidezMeses: 12
+      },
+      fechaVisita: '25 de octubre de 2026',
+      horaVisita: '11:00'
+    });
+
+    assert.strictEqual(sheet.isComplete, true);
+    assert.strictEqual(sheet.detectedPendingFields.length, 0);
+    assert.ok(!sheet.sheetText.includes('[PENDIENTE:'));
+    assert.ok(sheet.sheetText.includes('FIRMA DIGITAL DEL VISITANTE (CONFORME)'));
+    assert.strictEqual(sheet.readyForDigitalSignature, true);
+  });
+
+  test('El Director BROKER genera propuesta de Hoja de Visita integrada (RF-4, RF-10)', async () => {
+    const director = new BrokerDirector(tenantId);
+    const result = await director.processUserMessage('Prepara una hoja de visita para un cliente interesado en el ático de Gran Vía con honorarios del 3%');
+
+    assert.ok(result.delegatedSpecialists.includes('legal'));
+    const proposal = result.actionProposals.find(p => p.payload.documentType === 'visita');
+    assert.ok(proposal, 'Debe existir la propuesta de hoja de visita');
+    assert.ok(proposal.payload.content.includes('HOJA DE VISITA'));
+    assert.ok(proposal.payload.content.includes('honorarios'));
+    assert.strictEqual(proposal.requiresHumanApproval, true);
+  });
+});
+
 

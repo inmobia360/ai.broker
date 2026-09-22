@@ -2,6 +2,7 @@ import { BaseSpecialistSubagent } from "./base.ts";
 import type { SpecialistDomain, SpecialistTaskRequest, SpecialistResponse, SpecialistDraftProposal } from "./types.ts";
 import { generateArrasPenitencialesContract } from "../../legal/spain/arras.ts";
 import { generateLauContract } from "../../legal/spain/lau.ts";
+import { generateVisitSheet } from "../../legal/spain/visita.ts";
 
 export class LegalSpecialistSubagent extends BaseSpecialistSubagent {
   readonly domain: SpecialistDomain = "legal";
@@ -63,20 +64,28 @@ export class LegalSpecialistSubagent extends BaseSpecialistSubagent {
         }
       };
     } else if (lower.includes("visita") || lower.includes("honorarios") || lower.includes("corretaje")) {
-      analysis = "Análisis jurídico: El parte de visita requiere blindar el reconocimiento de gestión inmobiliaria y el devengo de honorarios en caso de formalizarse la compraventa o alquiler con el interesado presentado.";
+      analysis = "Análisis jurídico: La hoja de visita requiere blindar expresamente el reconocimiento de mediación inmobiliaria y el pacto de honorarios frente a intentos de elusión o trato directo con el propietario.";
+      
+      const visitDoc = generateVisitSheet({
+        agencia: req.context?.agencia,
+        visitante: req.context?.visitante,
+        inmueble: req.context?.inmueble,
+        honorarios: req.context?.honorarios,
+        fechaVisita: req.context?.fechaVisita,
+        horaVisita: req.context?.horaVisita
+      });
+
       draftProposal = {
         documentType: "visita",
-        title: "Borrador de Hoja de Visita con Reconocimiento de Honorarios",
-        summary: "Documento acreditativo de visita a inmueble con estipulación expresa de honorarios de intermediación.",
-        content: `HOJA DE VISITA Y RECONOCIMIENTO DE GESTIÓN INMOBILIARIA
-[BORRADOR GENERADO POR ASISTENTE JURÍDICO - REVISIÓN HUMANA OBLIGATORIA]
-
-VISITANTE: [PENDIENTE: NOMBRE_CLIENTE], con DNI/NIE [PENDIENTE: DNI_CLIENTE].
-INMUEBLE VISITADO: [PENDIENTE: DIRECCIÓN_COMPLETA].
-FECHA Y HORA: [PENDIENTE: FECHA_HORA_VISITA].
-
-CLÁUSULA DE HONORARIOS PROFESIONALES:
-El compareciente declara haber visitado el inmueble gracias a la intervención de la agencia y se compromete a abonar los honorarios profesionales estipulados (o el porcentaje pactado) en caso de compraventa o arrendamiento directo o indirecto de la citada finca.`
+        title: visitDoc.title,
+        summary: "Hoja de visita con reconocimiento de mediación, porcentaje de honorarios pactado y cláusula de firma en pantalla.",
+        content: visitDoc.sheetText,
+        metadata: {
+          legalReference: visitDoc.legalReference,
+          detectedPendingFields: visitDoc.detectedPendingFields,
+          isComplete: visitDoc.isComplete,
+          readyForDigitalSignature: visitDoc.readyForDigitalSignature
+        }
       };
     } else {
       analysis = "Análisis jurídico normativo: Consulta legal inmobiliaria bajo marco de derecho civil español y Ley por el Derecho a la Vivienda 12/2023.";

@@ -55,7 +55,7 @@ Cada tarea indica los Requisitos Funcionales (RF) que cubre y su condición veri
   - **Cubre**: RF-9.
   - **Hecho cuando**: El módulo genera el contrato de arrendamiento incorporando la duración legal mínima, prórrogas y cláusula de fianza legal obligatoria según la Ley 29/1994.
 
-- [ ] **T11: Generador de Hoja de Visita con pacto de honorarios**
+- [x] **T11: Generador de Hoja de Visita con pacto de honorarios**
   - **Cubre**: RF-10.
   - **Hecho cuando**: La hoja de visita se genera con los datos del visitante, finca y porcentaje de honorarios pactado, lista para visualización y firma en pantalla.
 
