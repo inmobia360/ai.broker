@@ -11,8 +11,8 @@ services:
       - .env
     environment:
       - DATABASE_URL=postgresql://broker_user:broker_password@postgres:5432/ai_broker_db
-      - OLLAMA_BASE_URL=https://ollama-pisf.srv1823868.hstgr.cloud/api/chat
-      - OLLAMA_MODEL=llama3.2:3b
+      - OLLAMA_URL=https://ollama-pisf.srv1823868.hstgr.cloud/api/chat
+      - OLLAMA_MODEL=llama3.1:8b
     volumes:
       - storage_data:/app/storage/private
     depends_on:
@@ -30,6 +30,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./src/lib/db/schema.sql:/docker-entrypoint-initdb.d/init.sql:ro
 
 volumes:
   postgres_data:
