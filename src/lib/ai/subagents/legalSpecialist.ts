@@ -1,5 +1,6 @@
 import { BaseSpecialistSubagent } from "./base.ts";
 import type { SpecialistDomain, SpecialistTaskRequest, SpecialistResponse, SpecialistDraftProposal } from "./types.ts";
+import { generateArrasPenitencialesContract } from "../../legal/spain/arras.ts";
 
 export class LegalSpecialistSubagent extends BaseSpecialistSubagent {
   readonly domain: SpecialistDomain = "legal";
@@ -16,35 +17,26 @@ export class LegalSpecialistSubagent extends BaseSpecialistSubagent {
 
     if (lower.includes("arras") || lower.includes("señal") || lower.includes("reserva")) {
       analysis = "Análisis jurídico: La operación requiere formalización mediante Arras Penitenciales amparadas en el Artículo 1454 del Código Civil español. En caso de desistimiento del comprador, perderá la cantidad entregada; si desiste la parte vendedora, deberá devolverlas duplicadas.";
+      
+      const arrasDoc = generateArrasPenitencialesContract({
+        municipio: req.context?.municipio,
+        fecha: req.context?.fecha,
+        vendedor: req.context?.vendedor,
+        comprador: req.context?.comprador,
+        inmueble: req.context?.inmueble,
+        condiciones: req.context?.condiciones
+      });
+
       draftProposal = {
         documentType: "arras",
-        title: "Borrador de Contrato de Arras Penitenciales (Art. 1454 C.C.)",
-        summary: "Contrato de arras penitenciales con fijación de señal, precio final y plazo máximo para otorgamiento de escritura pública ante notario.",
-        content: `CONTRATO DE ARRAS PENITENCIALES (ARTÍCULO 1454 CÓDIGO CIVIL)
-[BORRADOR GENERADO POR ASISTENTE JURÍDICO - REVISIÓN HUMANA OBLIGATORIA]
-
-En [PENDIENTE: MUNICIPIO], a [PENDIENTE: FECHA].
-
-REUNIDOS:
-DE UNA PARTE, COMO PARTE VENDEDORA:
-[PENDIENTE: NOMBRE_VENDEDOR], con DNI/NIE [PENDIENTE: DNI_VENDEDOR].
-
-DE OTRA PARTE, COMO PARTE COMPRADORA:
-[PENDIENTE: NOMBRE_COMPRADOR], con DNI/NIE [PENDIENTE: DNI_COMPRADOR].
-
-EXPONEN:
-I. Que la PARTE VENDEDORA es legítima propietaria de la finca sita en [PENDIENTE: DIRECCIÓN_INMUEBLE], inscrita en el Registro de la Propiedad con Referencia Catastral [PENDIENTE: REF_CATASTRAL].
-II. Que ambas partes acuerdan la compraventa por el precio total de [PENDIENTE: PRECIO_VENTA] euros.
-
-CLÁUSULAS:
-PRIMERA.- OBJETO Y SEÑAL (ARRAS PENITENCIALES).
-La PARTE COMPRADORA entrega en este acto a la PARTE VENDEDORA la cantidad de [PENDIENTE: IMPORTE_SEÑAL] euros en concepto de arras penitenciales, al amparo del artículo 1454 del Código Civil.
-
-SEGUNDA.- PENALIZACIÓN POR DESISTIMIENTO.
-Conforme a dicho precepto legal, si la PARTE COMPRADORA rescindiere el contrato, perderá la cantidad entregada. Si fuere la PARTE VENDEDORA quien rescindiere el contrato, vendrá obligada a devolver el doble de la cantidad recibida.
-
-TERCERA.- ESCRITURA PÚBLICA NOTARIAL.
-Las partes se obligan a formalizar la escritura pública de compraventa antes del [PENDIENTE: FECHA_LÍMITE_NOTARÍA].`
+        title: arrasDoc.title,
+        summary: "Contrato de arras penitenciales con fijación de señal, precio final y plazo máximo para otorgamiento de escritura pública ante notario (Art. 1454 C.C.).",
+        content: arrasDoc.contractText,
+        metadata: {
+          legalReference: arrasDoc.legalReference,
+          detectedPendingFields: arrasDoc.detectedPendingFields,
+          isComplete: arrasDoc.isComplete
+        }
       };
     } else if (lower.includes("alquiler") || lower.includes("arrendamiento") || lower.includes("lau")) {
       analysis = "Análisis jurídico: La relación arrendaticia de vivienda habitual se rige por la Ley 29/1994 de Arrendamientos Urbanos (LAU). Es imperativo reflejar la duración mínima de 5 años si el arrendador es persona física (7 años si es jurídica), prórrogas obligatorias y la fianza legal de una mensualidad.";

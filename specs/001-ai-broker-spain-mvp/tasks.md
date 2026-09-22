@@ -47,7 +47,7 @@ Cada tarea indica los Requisitos Funcionales (RF) que cubre y su condición veri
 
 ### Fase 3: Módulo Legal Inmobiliario de España
 
-- [ ] **T9: Generador de Contrato de Arras Penitenciales (Art. 1454 C.C.)**
+- [x] **T9: Generador de Contrato de Arras Penitenciales (Art. 1454 C.C.)**
   - **Cubre**: RF-8.
   - **Hecho cuando**: El test `test_legal_spain.ts` verifica que el borrador incluya las cláusulas del Art. 1454 del Código Civil, el importe de la señal y detecte campos ausentes con etiquetas `[PENDIENTE]` sin inventar datos.
 
