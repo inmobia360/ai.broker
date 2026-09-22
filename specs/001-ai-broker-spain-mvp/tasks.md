@@ -67,6 +67,6 @@ Cada tarea indica los Requisitos Funcionales (RF) que cubre y su condición veri
   - **Cubre**: RF-13.
   - **Hecho cuando**: El test de inserción y consulta comprueba que los vectores de un tenant nunca son recuperados en las búsquedas semánticas de otro tenant.
 
-- [ ] **T13: Validación final de la especificación y verificación e2e**
+- [x] **T13: Validación final de la especificación y verificación e2e**
   - **Cubre**: Todos los RF (RF-1 a RF-13).
   - **Hecho cuando**: Todos los tests de la suite pasan en verde, `npm run build` compila con 0 errores y el documento `validation.md` queda completado con veredicto APROBADO.
