@@ -7,6 +7,10 @@ import { CommercialSpecialistSubagent } from "./subagents/commercialSpecialist.t
 import { MarketingSpecialistSubagent } from "./subagents/marketingSpecialist.ts";
 import type { SpecialistDomain, SpecialistResponse } from "./subagents/types.ts";
 import { DraftGuard } from "../security/draftGuard.ts";
+import { DealRangeCalculator } from "../negotiation/dealRangeCalculator.ts";
+import { ContingencyChecker } from "../legal/spain/contingencyChecker.ts";
+import { DemandMatcher } from "../matching/demandMatcher.ts";
+import { OperationalMemoryStore } from "../memory/operationalMemoryStore.ts";
 
 const SYSTEM_PROMPT_DIRECTOR_BROKER = `Eres el Director BROKER, la máxima autoridad cognitiva y de supervisión de la agencia inmobiliaria en España (broker.inmobia360.com).
 Coordinas un equipo de asistentes técnicos especializados (Legal, Comercial, Marketing) para prestar soporte integral a los agentes independientes y directores.
@@ -202,13 +206,62 @@ export class BrokerDirector {
       }
     }
 
-    // 4. Construcción del contexto consolidado para inferencia (Ollama VPS Hostinger / Fallback)
+    // 4. Detección del Módulo de Negociación y Banda de Acuerdo
+    if (lower.includes("negocia") || lower.includes("oferta") || lower.includes("contraoferta") || lower.includes("banda de acuerdo")) {
+      const askMatch = userMessage.match(/(\d+[\.\d]*)\s*€?/g);
+      let asking = 300000;
+      let minAcc = 270000;
+      let offered = 250000;
+
+      if (askMatch && askMatch.length >= 2) {
+        const nums = askMatch.map(m => parseInt(m.replace(/\./g, ""), 10)).filter(n => !isNaN(n) && n > 1000);
+        if (nums.length >= 2) {
+          asking = nums[0];
+          offered = nums[1];
+          minAcc = Math.round(asking * 0.90);
+        }
+      }
+
+      const negAnalysis = DealRangeCalculator.analyzeDeal({
+        askingPrice: asking,
+        minAcceptedPrice: minAcc,
+        offeredPrice: offered,
+        buyerHasMortgagePreApproval: lower.includes("preaprob") || lower.includes("hipoteca"),
+        proposedCompletionDays: 45
+      });
+
+      specialistReports.push(
+        `[Módulo de Negociación]: Viabilidad ${negAnalysis.closingProbability.toUpperCase()}. Banda sugerida: ${negAnalysis.dealZone.minViablePrice.toLocaleString("es-ES")} € a ${negAnalysis.dealZone.suggestedCounterOffer.toLocaleString("es-ES")} €. Argumentos: ${negAnalysis.keyCommercialArguments.join(" | ")}. ${negAnalysis.recommendationToAgent}`
+      );
+    }
+
+    // 5. Detección del Protocolo de Contingencias Registrales
+    if (lower.includes("carga") || lower.includes("embargo") || lower.includes("nota simple") || lower.includes("contingencia") || lower.includes("discrepancia")) {
+      const contingencyAudit = ContingencyChecker.auditProperty({
+        propertyAddress: "Inmueble objeto de expediente",
+        hasActiveMortgage: lower.includes("hipoteca") || lower.includes("banco"),
+        mortgageBalanceEuro: 45000,
+        hasJudicialEmbargo: lower.includes("embargo"),
+        hasCommunityDebt: lower.includes("comunidad") || lower.includes("derrama"),
+        energyCertificateStatus: lower.includes("cee") || lower.includes("energetico") ? "vigente" : "ausente"
+      });
+
+      specialistReports.push(
+        `[Protocolo de Seguridad Jurídica y Contingencias]: Preparación Notarial ${contingencyAudit.notaryReadinessScore}%. ${contingencyAudit.summary} Pasos de resolución: ${contingencyAudit.resolutionChecklist.join(" | ")}`
+      );
+    }
+
+    // 6. Recuperación de Memoria Operativa Estructurada (RAG Few-Shot)
+    const similarCases = await OperationalMemoryStore.retrieveSimilarCases(tenantId, userMessage, { limit: 2, minSimilarity: 0.60 });
+    const memoryContext = OperationalMemoryStore.formatFewShotContext(similarCases);
+
+    // 7. Construcción del contexto consolidado para inferencia (Ollama VPS Hostinger / Fallback)
     const specialistContext = specialistReports.length > 0
-      ? `\n\nInformes internos recabados de tus especialistas técnicos:\n${specialistReports.join("\n\n")}\nSintetiza estos hallazgos con tu criterio directivo y confirma al agente las acciones preparadas en borrador seguro pendientes de su aprobación.`
+      ? `\n\nInformes internos recabados de tus especialistas técnicos y herramientas operativas:\n${specialistReports.join("\n\n")}\nSintetiza estos hallazgos con tu criterio directivo y confirma al agente las acciones preparadas en borrador seguro pendientes de su aprobación.`
       : "";
 
     const messages: LLMMessage[] = [
-      { role: "system", content: SYSTEM_PROMPT_DIRECTOR_BROKER + specialistContext },
+      { role: "system", content: SYSTEM_PROMPT_DIRECTOR_BROKER + memoryContext + specialistContext },
       ...conversationHistory,
       { role: "user", content: userMessage }
     ];
