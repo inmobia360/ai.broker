@@ -15,7 +15,8 @@ import {
   Search,
   Filter,
   ArrowUpRight,
-  Share2
+  Share2,
+  Plus
 } from "lucide-react";
 import { DeepLinkGenerator } from "@/lib/geo/deepLinkGenerator";
 
@@ -142,7 +143,7 @@ export const PropertyCatalog: React.FC<PropertyCatalogProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPropertyForMap, setSelectedPropertyForMap] = useState<PropertyItem>(properties[0] || DEMO_PROPERTIES[0]);
 
-  const activeProperties = properties.length > 0 ? properties : DEMO_PROPERTIES;
+  const activeProperties = properties;
 
   const filteredProperties = activeProperties.filter(p => 
     p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -209,10 +210,29 @@ export const PropertyCatalog: React.FC<PropertyCatalogProps> = ({
         </div>
       </div>
 
-      {/* VISTA 1: CUADRÍCULA (GRID) */}
-      {viewMode === "grid" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredProperties.map(property => {
+      {filteredProperties.length === 0 ? (
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-12 text-center shadow-xs">
+          <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4">
+            <Building2 className="w-7 h-7" />
+          </div>
+          <h3 className="text-base font-bold text-slate-900">Tu cartera de inmuebles está lista</h3>
+          <p className="text-xs text-slate-500 max-w-md mx-auto mt-1 mb-6 leading-relaxed">
+            Aún no tienes propiedades registradas en tu cartera. Pulsa en "+ Nueva Propiedad" para dar de alta tu primera ficha con fotos, precio y generar su landing pública con código QR.
+          </p>
+          <button
+            onClick={onOpenNewPropertyModal}
+            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-600/20 transition inline-flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Crear Mi Primer Inmueble</span>
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* VISTA 1: CUADRÍCULA (GRID) */}
+          {viewMode === "grid" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filteredProperties.map(property => {
             const deepLinks = DeepLinkGenerator.generateLinks({
               lat: property.coordinates.lat,
               lon: property.coordinates.lng,
@@ -501,6 +521,8 @@ export const PropertyCatalog: React.FC<PropertyCatalogProps> = ({
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

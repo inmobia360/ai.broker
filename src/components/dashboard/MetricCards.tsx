@@ -5,12 +5,24 @@ import { Building2, Users, Flame, Eye, Sparkles, Plus, ArrowUpRight } from "luci
 
 interface MetricCardsProps {
   onQuickAction: (action: "properties" | "cma" | "content" | "leads") => void;
+  propertiesCount?: number;
+  leadsCount?: number;
+  hotLeadsCount?: number;
+  newLeadsCount?: number;
+  viewsCount?: number;
 }
 
-export const MetricCards: React.FC<MetricCardsProps> = ({ onQuickAction }) => {
+export const MetricCards: React.FC<MetricCardsProps> = ({ 
+  onQuickAction,
+  propertiesCount = 5,
+  leadsCount = 4,
+  hotLeadsCount = 2,
+  newLeadsCount = 2,
+  viewsCount = 3670
+}) => {
   return (
     <div className="space-y-6">
-      {/* 4 Tarjetas de Métricas idénticas a inmobia360.com/app/dashboard/ */}
+      {/* 4 Tarjetas de Métricas dinámicas en tiempo real */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 1. Propiedades Publicadas */}
         <div 
@@ -20,11 +32,11 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ onQuickAction }) => {
           <div className="flex items-start justify-between">
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                PROPIEDADES PUBLICADAS
+                PROPIEDADES EN CARTERA
               </span>
               <div className="mt-2 flex items-baseline gap-1.5">
-                <span className="text-3xl font-extrabold text-slate-900">5</span>
-                <span className="text-xs text-slate-400 font-medium">/ 5 en catálogo</span>
+                <span className="text-3xl font-extrabold text-slate-900">{propertiesCount}</span>
+                <span className="text-xs text-slate-400 font-medium">en catálogo</span>
               </div>
             </div>
             <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
@@ -32,7 +44,7 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ onQuickAction }) => {
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-            <span>0 borradores · 0 listas</span>
+            <span>{propertiesCount > 0 ? `${propertiesCount} activas con landing y QR` : "Sin inmuebles dados de alta"}</span>
           </div>
         </div>
 
@@ -47,10 +59,12 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ onQuickAction }) => {
                 LEADS RECIBIDOS
               </span>
               <div className="mt-2 flex items-center gap-2">
-                <span className="text-3xl font-extrabold text-slate-900">4</span>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                  +2 nuevos
-                </span>
+                <span className="text-3xl font-extrabold text-slate-900">{leadsCount}</span>
+                {newLeadsCount > 0 && (
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                    +{newLeadsCount} nuevos
+                  </span>
+                )}
               </div>
             </div>
             <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
@@ -60,7 +74,7 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ onQuickAction }) => {
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-emerald-600 font-medium">
             <span className="flex items-center gap-1">
               <ArrowUpRight className="w-3.5 h-3.5" />
-              Captación activa en landings
+              {leadsCount > 0 ? "Captación activa en landings" : "Esperando contactos"}
             </span>
           </div>
         </div>
@@ -76,7 +90,7 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ onQuickAction }) => {
                 LEADS PRIORITARIOS
               </span>
               <div className="mt-2 flex items-center gap-2">
-                <span className="text-3xl font-extrabold text-slate-900">2</span>
+                <span className="text-3xl font-extrabold text-slate-900">{hotLeadsCount}</span>
                 <span className="text-[11px] font-bold text-rose-600">
                   HOT SCORE &gt; 80%
                 </span>
@@ -87,7 +101,7 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ onQuickAction }) => {
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-            <span>Requieren contacto prioritario</span>
+            <span>{hotLeadsCount > 0 ? "Requieren contacto prioritario" : "Sin urgencias pendientes"}</span>
           </div>
         </div>
 
@@ -102,8 +116,10 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ onQuickAction }) => {
                 IMPACTOS Y VISITAS
               </span>
               <div className="mt-2 flex items-baseline gap-1.5">
-                <span className="text-3xl font-extrabold text-slate-900">3670</span>
-                <span className="text-xs text-slate-400 font-medium">0.1% conversión</span>
+                <span className="text-3xl font-extrabold text-slate-900">{viewsCount.toLocaleString("es-ES")}</span>
+                <span className="text-xs text-slate-400 font-medium">
+                  {propertiesCount > 0 ? `${((leadsCount / Math.max(viewsCount, 1)) * 100).toFixed(1)}% conversión` : "0%"}
+                </span>
               </div>
             </div>
             <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600">

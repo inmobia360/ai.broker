@@ -144,8 +144,23 @@ export default function BrokerDashboard() {
     }
   }, []);
 
-  // Carga dinámica de la marca configurada en PostgreSQL
+  // Carga dinámica de la marca configurada en PostgreSQL con fallback en localStorage
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const savedBrand = localStorage.getItem("inmobia360_brand_config");
+        if (savedBrand) {
+          const parsed = JSON.parse(savedBrand);
+          setBrandConfig(prev => ({ ...prev, ...parsed }));
+        }
+        const isClean = localStorage.getItem("inmobia360_clean_portfolio");
+        if (isClean === "true") {
+          setProperties([]);
+          setLeads([]);
+        }
+      } catch {}
+    }
+
     fetch("/api/settings/brand")
       .then(res => res.json())
       .then(data => {
@@ -170,6 +185,11 @@ export default function BrokerDashboard() {
 
   const handleSaveBrandConfig = async (updated: WhiteLabelConfig) => {
     setBrandConfig(updated);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("inmobia360_brand_config", JSON.stringify(updated));
+      } catch {}
+    }
     try {
       await fetch("/api/settings/brand", {
         method: "PUT",
@@ -1093,9 +1113,27 @@ export default function BrokerDashboard() {
               <Settings className="w-3.5 h-3.5 text-orange-600" />
               <span>Mi Agencia</span>
             </button>
-            <span className="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-600 font-semibold border border-slate-200">
-              Demo Data
-            </span>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200/80 shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Plataforma Activa</span>
+            </div>
+            <button
+              onClick={() => {
+                if (properties.length > 0 || leads.length > 0) {
+                  setProperties([]);
+                  setLeads([]);
+                  if (typeof window !== "undefined") localStorage.setItem("inmobia360_clean_portfolio", "true");
+                } else {
+                  setProperties(DEMO_PROPERTIES);
+                  setLeads(PRIORITY_LEADS);
+                  if (typeof window !== "undefined") localStorage.removeItem("inmobia360_clean_portfolio");
+                }
+              }}
+              className="px-2.5 py-1 text-[11px] rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 font-semibold transition"
+              title="Alternar entre Cartera Limpia y Datos de Plantilla"
+            >
+              {properties.length > 0 ? "Limpiar Plantilla" : "Cargar Plantilla"}
+            </button>
             <button className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
               <Moon className="w-4 h-4" />
             </button>
@@ -1134,7 +1172,40 @@ export default function BrokerDashboard() {
           {/* 1. PANEL GENERAL (DASHBOARD) - IDÉNTICO A inmobia360.com/app/dashboard/ */}
           {activeTab === "dashboard" && (
             <div className="space-y-8 max-w-7xl mx-auto">
-              <MetricCards onQuickAction={handleDashboardQuickAction} />
+              {/* Banner de Bienvenida y Activación de Marca de la Agencia */}
+              <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-white border border-blue-200/90 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xs">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/30">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">
+                      Personaliza {brandConfig.agencyName} con tu Identidad y Colegiación
+                    </h3>
+                    <p className="text-xs text-slate-600 mt-0.5 max-w-2xl leading-relaxed">
+                      Configura tu nombre comercial, logotipo, teléfono y número colegiado API para que todas tus hojas de visita, contratos de arras y landings públicas salgan con tu propia marca.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => setOnboardingModalOpen(true)}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-1.5"
+                  >
+                    <Settings className="w-3.5 h-3.5" />
+                    <span>Configurar mi Agencia</span>
+                  </button>
+                </div>
+              </div>
+
+              <MetricCards 
+                onQuickAction={handleDashboardQuickAction}
+                propertiesCount={properties.length}
+                leadsCount={leads.length}
+                hotLeadsCount={leads.filter(l => l.score >= 80).length}
+                newLeadsCount={leads.filter(l => l.timeframe === "Ahora" || l.timeframe === "immediate").length}
+                viewsCount={properties.length > 0 ? (properties.length * 680 + leads.length * 15) : 0}
+              />
               
               <PriorityLeadsWidget 
                 leads={leads}

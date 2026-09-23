@@ -24,7 +24,7 @@ export const PriorityLeadsWidget: React.FC<PriorityLeadsWidgetProps> = ({
   onGenerateArrasContract,
   onConvertToPipeline
 }) => {
-  const displayedLeads = leads && leads.length > 0 ? leads : PRIORITY_LEADS;
+  const displayedLeads = leads !== undefined ? leads : PRIORITY_LEADS;
   return (
     <div className="space-y-4">
       {/* Cabecera idéntica a inmobia360.com */}
@@ -35,7 +35,7 @@ export const PriorityLeadsWidget: React.FC<PriorityLeadsWidgetProps> = ({
             Leads Calientes Prioritarios (Acción Inmediata)
           </h2>
         </div>
-        {onOpenAllLeads && (
+        {onOpenAllLeads && displayedLeads.length > 0 && (
           <button
             onClick={onOpenAllLeads}
             className="text-xs text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 transition-colors"
@@ -46,8 +46,26 @@ export const PriorityLeadsWidget: React.FC<PriorityLeadsWidgetProps> = ({
         )}
       </div>
 
-      {/* Tarjetas de Leads Calientes */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {displayedLeads.length === 0 ? (
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-8 text-center shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-3">
+            <span className="text-xl">🔥</span>
+          </div>
+          <h3 className="text-sm font-bold text-slate-900">Sin leads pendientes en espera</h3>
+          <p className="text-xs text-slate-500 max-w-md mx-auto mt-1 mb-4 leading-relaxed">
+            Comparte tus landings públicas con código QR. El motor de IA analizará de forma inmediata la solvencia y temperatura de cada comprador interesado.
+          </p>
+          {onOpenAllLeads && (
+            <button
+              onClick={onOpenAllLeads}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold shadow-xs transition"
+            >
+              Ver Propiedades para Difundir
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {displayedLeads.map((lead) => (
           <div 
             key={lead.id}
@@ -189,6 +207,7 @@ export const PriorityLeadsWidget: React.FC<PriorityLeadsWidgetProps> = ({
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 };
