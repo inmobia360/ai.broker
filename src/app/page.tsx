@@ -117,6 +117,33 @@ export default function BrokerDashboard() {
   // Modal de Onboarding y Configuración de Agencia
   const [onboardingModalOpen, setOnboardingModalOpen] = useState(false);
 
+  // Sincronización automática de pestaña activa según URL y parámetros
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab") as ActiveTabType;
+      const path = window.location.pathname.toLowerCase();
+
+      if (tabParam && ["dashboard", "properties", "pipeline", "leads", "cma", "legal", "content", "chat", "docs", "settings"].includes(tabParam)) {
+        setActiveTab(tabParam);
+      } else if (path.includes("lead")) {
+        setActiveTab("leads");
+      } else if (path.includes("propert")) {
+        setActiveTab("properties");
+      } else if (path.includes("pipeline")) {
+        setActiveTab("pipeline");
+      } else if (path.includes("cma") || path.includes("valuat")) {
+        setActiveTab("cma");
+      } else if (path.includes("content") || path.includes("market") || path.includes("generator")) {
+        setActiveTab("content");
+      } else if (path.includes("legal") || path.includes("doc")) {
+        setActiveTab("legal");
+      } else if (path.includes("setting")) {
+        setActiveTab("settings");
+      }
+    }
+  }, []);
+
   // Carga dinámica de la marca configurada en PostgreSQL
   useEffect(() => {
     fetch("/api/settings/brand")
