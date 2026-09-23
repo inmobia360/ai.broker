@@ -19,5 +19,5 @@
 
 ## Fase 4: Pruebas, Verificación y Despliegue
 - [x] T12: Escribir tests unitarios para LPH, Postventa y Marca Blanca (`tests/test_community_lph.test.ts`, `tests/test_handover_postventa.test.ts`, `tests/test_white_label.test.ts`).
-- [ ] T13: Ejecutar suite de validación completa (`npx tsc --noEmit` y `npm test`).
+- [x] T13: Ejecutar suite de validación completa (`npx tsc --noEmit` y `npm test`).
 - [ ] T14: Sincronizar en Git y desplegar en VPS Hostinger (`app.inmobia360.com`).
