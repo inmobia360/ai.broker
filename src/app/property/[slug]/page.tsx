@@ -21,7 +21,8 @@ import {
   CheckCircle2, 
   ExternalLink,
   Sparkles,
-  ArrowLeft
+  ArrowLeft,
+  MessageCircle
 } from 'lucide-react';
 import { BrandLogo } from '@/components/brand/BrandLogo';
 import { LeadCaptureForm } from '@/components/lead/LeadCaptureForm';
@@ -36,8 +37,34 @@ export default function PropertyLandingPage() {
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [showShareModal, setShowShareModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [agencyBranding, setAgencyBranding] = useState({
+    agencyName: "Inmobia 360",
+    phone: "+34 600 000 000",
+    whatsapp: "+34 600 000 000",
+    email: "info@inmobia360.com",
+    associationNumber: "API-COL-45892",
+    tagline: "Agencia Inmobiliaria Colegiada"
+  });
 
   useEffect(() => {
+    // Cargar marca blanca de la agencia colegiada
+    fetch('/api/settings/brand')
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok && data.data) {
+          const b = data.data;
+          setAgencyBranding({
+            agencyName: b.agency_name || b.agencyName || "Inmobia 360",
+            phone: b.support_phone || b.contactPhone || "+34 600 000 000",
+            whatsapp: b.support_phone || b.contactPhone || "+34 600 000 000",
+            email: b.support_email || b.contactEmail || "info@inmobia360.com",
+            associationNumber: b.association_number || b.apiNumber || "API-COL-45892",
+            tagline: b.tagline || b.brandSlogan || "Agencia Inmobiliaria Colegiada"
+          });
+        }
+      })
+      .catch(() => {});
+
     // 1. Buscar primero en las propiedades demo
     const foundDemo = DEMO_PROPERTIES.find(
       p => p.id === slug || p.id.toLowerCase() === slug.toLowerCase() || p.title.toLowerCase().includes(slug.toLowerCase())
@@ -306,20 +333,44 @@ export default function PropertyLandingPage() {
               propertyPrice={property.price}
             />
 
-            {/* Tarjeta del Asesor */}
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-slate-900 text-white font-black text-sm flex items-center justify-center shrink-0">
-                IB
-              </div>
-              <div className="min-w-0 flex-1">
-                <h4 className="text-xs font-bold text-slate-900">Equipo Comercial Inmobia 360</h4>
-                <p className="text-[11px] text-slate-500">Agentes Inmobiliarios Colegiados</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Disponible hoy
-                  </span>
+            {/* Tarjeta del Asesor y Agencia Colegiada */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white font-black text-sm flex items-center justify-center shrink-0">
+                  {agencyBranding.agencyName.substring(0, 2).toUpperCase()}
                 </div>
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-xs font-bold text-slate-900 truncate">{agencyBranding.agencyName}</h4>
+                  <p className="text-[11px] text-slate-500 truncate">
+                    {agencyBranding.associationNumber ? `Colegiado: ${agencyBranding.associationNumber}` : 'Agencia Inmobiliaria'}
+                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      Atención inmediata
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Botones de Contacto Directo */}
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+                <a
+                  href={`https://wa.me/${agencyBranding.whatsapp.replace(/[^0-9]/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-2 px-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-xs"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  WhatsApp
+                </a>
+                <a
+                  href={`tel:${agencyBranding.phone.replace(/[^0-9+]/g, '')}`}
+                  className="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  Llamar
+                </a>
               </div>
             </div>
           </div>
@@ -331,7 +382,7 @@ export default function PropertyLandingPage() {
         property={property} 
         isOpen={showShareModal} 
         onClose={() => setShowShareModal(false)}
-        agencyName="Inmobia 360"
+        agencyName={agencyBranding.agencyName}
       />
     </div>
   );

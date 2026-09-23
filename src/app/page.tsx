@@ -39,6 +39,7 @@ import { InteractiveCMA } from "@/components/dashboard/InteractiveCMA";
 import { ContentStudioAI } from "@/components/dashboard/ContentStudioAI";
 import { LegalPostventaModule } from "@/components/dashboard/LegalPostventaModule";
 import { WhiteLabelSettings } from "@/components/dashboard/WhiteLabelSettings";
+import { AgentOnboardingModal } from "@/components/dashboard/AgentOnboardingModal";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { ShareModal } from "@/components/ui/ShareModal";
 import { 
@@ -104,6 +105,58 @@ export default function BrokerDashboard() {
   // Modal de Difusión y Compartir con QR Dinámico
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [selectedPropertyToShare, setSelectedPropertyToShare] = useState<PropertyItem | null>(null);
+
+  // Modal de Onboarding y Configuración de Agencia
+  const [onboardingModalOpen, setOnboardingModalOpen] = useState(false);
+
+  // Carga dinámica de la marca configurada en PostgreSQL
+  useEffect(() => {
+    fetch("/api/settings/brand")
+      .then(res => res.json())
+      .then(data => {
+        if (data.ok && data.data) {
+          const d = data.data;
+          setBrandConfig(prev => ({
+            ...prev,
+            agencyName: d.agency_name || d.agencyName || prev.agencyName,
+            brandSlogan: d.tagline || d.brandSlogan || prev.brandSlogan,
+            primaryColor: d.primary_color || d.primaryColor || prev.primaryColor,
+            accentColor: d.accent_color || d.accentColor || prev.accentColor,
+            fiscalId: d.tax_id || d.fiscalId || prev.fiscalId,
+            apiNumber: d.association_number || d.apiNumber || prev.apiNumber,
+            contactEmail: d.support_email || d.contactEmail || prev.contactEmail,
+            contactPhone: d.support_phone || d.contactPhone || prev.contactPhone,
+            logoUrl: d.logo_url || d.logoUrl || prev.logoUrl
+          }));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleSaveBrandConfig = async (updated: WhiteLabelConfig) => {
+    setBrandConfig(updated);
+    try {
+      await fetch("/api/settings/brand", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          agency_name: updated.agencyName,
+          tagline: updated.brandSlogan,
+          primary_color: updated.primaryColor,
+          accent_color: updated.accentColor,
+          tax_id: updated.fiscalId,
+          association_number: updated.apiNumber,
+          support_phone: updated.contactPhone,
+          support_email: updated.contactEmail,
+          logo_url: updated.logoUrl,
+          max_team_seats: updated.team ? updated.team.filter(t => t.active).length : 5,
+          plan_type: "boutique"
+        })
+      });
+    } catch (err) {
+      console.error("Error al persistir marca blanca:", err);
+    }
+  };
 
   // Monitor de salud en tiempo real
   const [health, setHealth] = useState<HealthInfo | null>(null);
@@ -654,15 +707,15 @@ export default function BrokerDashboard() {
             </a>
 
             <div className="pt-2 border-t border-slate-200/80 flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
-                EC
+              <div className="w-8 h-8 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                {brandConfig.agencyName.substring(0, 2).toUpperCase()}
               </div>
               <div className="overflow-hidden">
                 <div className="text-xs font-bold text-slate-900 truncate">
-                  Equipo Comercial Inmobiliario
+                  {brandConfig.agencyName}
                 </div>
                 <div className="text-[10px] text-slate-400 truncate">
-                  Habita B2B Real Estate Tech
+                  {brandConfig.apiNumber || 'Agencia Colegiada'}
                 </div>
               </div>
             </div>
@@ -676,14 +729,22 @@ export default function BrokerDashboard() {
         <header className="h-18 border-b border-slate-200/80 bg-white flex items-center justify-between px-8 shrink-0">
           <div>
             <h1 className="text-xl font-bold text-slate-900 leading-tight">
-              Bienvenido, Equipo Comercial Inmobiliario
+              Bienvenido, Equipo de {brandConfig.agencyName}
             </h1>
             <p className="text-xs text-slate-400 mt-0.5">
-              Panel de control y rendimiento de Habita B2B Real Estate Tech
+              Panel de control de {brandConfig.agencyName} {brandConfig.apiNumber ? `· Colegiado: ${brandConfig.apiNumber}` : ''}
             </p>
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setOnboardingModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200/80 rounded-xl text-xs font-bold transition shadow-xs"
+              title="Configurar perfil de agencia, marca blanca y colegiación"
+            >
+              <Settings className="w-3.5 h-3.5 text-orange-600" />
+              <span>Mi Agencia</span>
+            </button>
             <span className="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-600 font-semibold border border-slate-200">
               Demo Data
             </span>
@@ -1017,7 +1078,7 @@ export default function BrokerDashboard() {
             <div className="max-w-7xl mx-auto">
               <WhiteLabelSettings 
                 initialConfig={brandConfig}
-                onSaveConfig={(updated) => setBrandConfig(updated)}
+                onSaveConfig={handleSaveBrandConfig}
               />
             </div>
           )}
@@ -1190,6 +1251,14 @@ export default function BrokerDashboard() {
         isOpen={shareModalOpen}
         onClose={() => setShareModalOpen(false)}
         agencyName={brandConfig.agencyName}
+      />
+
+      {/* Modal de Onboarding y Configuración de Agencia */}
+      <AgentOnboardingModal
+        isOpen={onboardingModalOpen}
+        onClose={() => setOnboardingModalOpen(false)}
+        currentConfig={brandConfig}
+        onSave={handleSaveBrandConfig}
       />
     </div>
   );
