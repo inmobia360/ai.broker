@@ -32,9 +32,9 @@ import {
 } from "lucide-react";
 import { DraftApprovalModal, ActionProposal } from "@/components/DraftApprovalModal";
 import { MetricCards } from "@/components/dashboard/MetricCards";
-import { PriorityLeadsWidget } from "@/components/dashboard/PriorityLeadsWidget";
+import { PriorityLeadsWidget, PriorityLead } from "@/components/dashboard/PriorityLeadsWidget";
 import { PropertyCatalog, DEMO_PROPERTIES, PropertyItem } from "@/components/dashboard/PropertyCatalog";
-import { InteractivePipeline } from "@/components/dashboard/InteractivePipeline";
+import { InteractivePipeline, PipelineCase, INITIAL_PIPELINE_CASES } from "@/components/dashboard/InteractivePipeline";
 import { InteractiveCMA } from "@/components/dashboard/InteractiveCMA";
 import { ContentStudioAI } from "@/components/dashboard/ContentStudioAI";
 import { LegalPostventaModule } from "@/components/dashboard/LegalPostventaModule";
@@ -42,6 +42,10 @@ import { WhiteLabelSettings } from "@/components/dashboard/WhiteLabelSettings";
 import { AgentOnboardingModal } from "@/components/dashboard/AgentOnboardingModal";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { ShareModal } from "@/components/ui/ShareModal";
+import { generateVisitSheet } from "@/lib/legal/spain/visita";
+import { generateArrasContract } from "@/lib/legal/spain/arras";
+import { generateLPHDebtCertificateRequest } from "@/lib/legal/spain/communityLPH";
+import { generateKeyHandoverAct } from "@/lib/legal/spain/handoverPostventa";
 import { 
   WhiteLabelConfig, 
   getDefaultWhiteLabelConfig 
@@ -85,6 +89,7 @@ export default function BrokerDashboard() {
   // Marca Blanca y Propiedades Dinámicas
   const [brandConfig, setBrandConfig] = useState<WhiteLabelConfig>(getDefaultWhiteLabelConfig("inmobia360"));
   const [properties, setProperties] = useState<PropertyItem[]>(DEMO_PROPERTIES);
+  const [pipelineCases, setPipelineCases] = useState<PipelineCase[]>(INITIAL_PIPELINE_CASES);
   const [newPropertyModalOpen, setNewPropertyModalOpen] = useState(false);
   const [isSavingProperty, setIsSavingProperty] = useState(false);
   const [newPropForm, setNewPropForm] = useState({
@@ -390,6 +395,249 @@ export default function BrokerDashboard() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handleGenerateVisitSheetFromLead = (lead: PriorityLead) => {
+    const rawPrice = parseFloat(lead.budget.replace(/[^0-9]/g, "")) || 350000;
+    const doc = generateVisitSheet({
+      agencia: {
+        nombreAgencia: brandConfig.agencyName,
+        cif: brandConfig.fiscalId,
+        registroProfesional: brandConfig.apiNumber
+      },
+      visitante: {
+        nombreCompleto: lead.name,
+        telefono: lead.phone,
+        email: "lead@ejemplo.com"
+      },
+      inmueble: {
+        direccion: `Inmueble de interés en ${lead.location}`,
+        municipio: lead.location.split("(")[0].trim() || "Madrid",
+        precioOrientativo: rawPrice,
+        tipoOperacion: lead.category.toLowerCase().includes("alquiler") ? "alquiler" : "venta"
+      },
+      honorarios: {
+        porcentajeHonorariosVenta: 3,
+        ivaAplicable: 21,
+        periodoValidezMeses: 12
+      },
+      fechaVisita: new Date().toLocaleDateString("es-ES"),
+      horaVisita: "12:00"
+    });
+
+    const proposal: ActionProposal = {
+      id: `prop-visita-${Date.now()}`,
+      title: `${doc.title} — ${lead.name}`,
+      description: `Hoja de Encargo de Visita generada automáticamente para ${lead.name} con reserva de corretaje, blindaje de honorarios y cláusula RGPD.`,
+      actionType: "visita",
+      status: "pending",
+      fileName: `Hoja_Visita_${lead.name.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`,
+      rawContent: doc.sheetText,
+      recipientPhone: lead.phone,
+      recipientEmail: "lead@ejemplo.com"
+    };
+
+    setSelectedProposal(proposal);
+    setApprovalModalOpen(true);
+  };
+
+  const handleGenerateArrasFromLead = (lead: PriorityLead) => {
+    const rawPrice = parseFloat(lead.budget.replace(/[^0-9]/g, "")) || 450000;
+    const senal = Math.round(rawPrice * 0.10);
+    const doc = generateArrasContract({
+      municipio: lead.location.split("(")[0].trim() || "Madrid",
+      fecha: new Date().toLocaleDateString("es-ES"),
+      vendedor: {
+        nombreCompleto: `Parte Vendedora (Agencia ${brandConfig.agencyName})`,
+        dniNie: brandConfig.fiscalId,
+        domicilio: lead.location
+      },
+      comprador: {
+        nombreCompleto: lead.name,
+        dniNie: "DNI/NIE PENDIENTE DE APORTAR",
+        domicilio: lead.location
+      },
+      inmueble: {
+        direccion: `Inmueble en ${lead.location}`,
+        referenciaCatastral: "9872023VK4797S0001WX",
+        datosRegistrales: "Finca Registral nº 48.912 del Registro de la Propiedad"
+      },
+      condiciones: {
+        precioTotal: rawPrice,
+        importeSenalArras: senal,
+        formaPagoSenal: "Transferencia bancaria a cuenta de depósito en garantía",
+        plazoMaximoNotaria: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toLocaleDateString("es-ES")
+      }
+    });
+
+    const proposal: ActionProposal = {
+      id: `prop-arras-${Date.now()}`,
+      title: `${doc.title} (Art. 1454 C.C.) — ${lead.name}`,
+      description: `Contrato de Arras Penitenciales conforme al Art. 1454 del Código Civil con señal del 10% (${senal.toLocaleString("es-ES")} €) y plazo notarial de 60 días.`,
+      actionType: "arras",
+      status: "pending",
+      fileName: `Contrato_Arras_${lead.name.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`,
+      rawContent: doc.contractText,
+      recipientPhone: lead.phone,
+      recipientEmail: "lead@ejemplo.com"
+    };
+
+    setSelectedProposal(proposal);
+    setApprovalModalOpen(true);
+  };
+
+  const handleConvertToPipeline = (lead: PriorityLead) => {
+    const newCase: PipelineCase = {
+      id: `EXP-2026-${String(pipelineCases.length + 1).padStart(3, "0")}`,
+      title: `Operación ${lead.name.split(" ")[0]} — ${lead.location}`,
+      clientName: lead.name,
+      price: lead.budget,
+      stage: "comercializacion",
+      pendingDoc: "Hoja de Visita con Reserva de Honorarios",
+      suggestedAction: lead.suggestedPrompt
+    };
+    setPipelineCases(prev => [newCase, ...prev]);
+    setActiveTab("pipeline");
+  };
+
+  const handleGenerateLegalDocFromPipeline = (
+    docType: "visita" | "arras" | "lph" | "acta_llaves",
+    pipelineCase: PipelineCase
+  ) => {
+    const rawPrice = parseFloat(pipelineCase.price.replace(/[^0-9]/g, "")) || 500000;
+    let title = "";
+    let description = "";
+    let content = "";
+    let fileName = "";
+
+    if (docType === "visita") {
+      const doc = generateVisitSheet({
+        agencia: {
+          nombreAgencia: brandConfig.agencyName,
+          cif: brandConfig.fiscalId,
+          registroProfesional: brandConfig.apiNumber
+        },
+        visitante: {
+          nombreCompleto: pipelineCase.clientName
+        },
+        inmueble: {
+          direccion: pipelineCase.title,
+          precioOrientativo: rawPrice
+        },
+        honorarios: {
+          porcentajeHonorariosVenta: 3,
+          ivaAplicable: 21,
+          periodoValidezMeses: 12
+        }
+      });
+      title = `${doc.title} — ${pipelineCase.id}`;
+      description = `Hoja de visita con blindaje de honorarios para el expediente ${pipelineCase.id}.`;
+      content = doc.sheetText;
+      fileName = `Hoja_Visita_${pipelineCase.id}.pdf`;
+    } else if (docType === "arras") {
+      const senal = Math.round(rawPrice * 0.10);
+      const doc = generateArrasContract({
+        condiciones: {
+          precioTotal: rawPrice,
+          importeSenalArras: senal,
+          formaPagoSenal: "Transferencia bancaria inmediata",
+          plazoMaximoNotaria: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toLocaleDateString("es-ES")
+        },
+        comprador: {
+          nombreCompleto: pipelineCase.clientName
+        },
+        vendedor: {
+          nombreCompleto: `Agencia ${brandConfig.agencyName} (en representación de propiedad)`
+        },
+        inmueble: {
+          direccion: pipelineCase.title
+        }
+      });
+      title = `${doc.title} (Art. 1454 C.C.) — ${pipelineCase.id}`;
+      description = `Contrato de Arras Penitenciales con señal del 10% (${senal.toLocaleString("es-ES")} €) para el expediente ${pipelineCase.id}.`;
+      content = doc.contractText;
+      fileName = `Contrato_Arras_${pipelineCase.id}.pdf`;
+    } else if (docType === "lph") {
+      const doc = generateLPHDebtCertificateRequest({
+        details: {
+          propertyAddress: pipelineCase.title,
+          ownerName: pipelineCase.clientName,
+          ownerDni: "B-XXXXXXXX",
+          monthlyOrdinaryFee: 150,
+          administrator: {
+            name: "Administración de Fincas Colegiada",
+            collegeNumber: "CAF-4402",
+            email: "fincas@administracioncolegiada.es",
+            phone: "+34 912 345 678"
+          }
+        },
+        requestDate: new Date().toLocaleDateString("es-ES"),
+        notaryScheduledDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString("es-ES")
+      });
+      title = `${doc.title} — ${pipelineCase.id}`;
+      description = `Requerimiento formal de Certificado de Corriente de Pago LPH (Art. 9.1.e) para notaría.`;
+      content = doc.documentText;
+      fileName = `Certificado_LPH_DeudaCero_${pipelineCase.id}.pdf`;
+    } else if (docType === "acta_llaves") {
+      const doc = generateKeyHandoverAct({
+        propertyAddress: pipelineCase.title,
+        transferDate: new Date().toLocaleDateString("es-ES"),
+        transferType: "compraventa",
+        transferor: {
+          fullName: "Parte Vendedora",
+          dniNie: "12345678Z"
+        },
+        acquirer: {
+          fullName: pipelineCase.clientName,
+          dniNie: "87654321A"
+        },
+        agentName: brandConfig.agencyName,
+        agencyName: brandConfig.agencyName,
+        keys: {
+          mainDoorSets: 3,
+          portalSets: 2,
+          mailboxKeys: 1,
+          storageRoomKeys: 1,
+          garageRemotes: 1
+        },
+        utilities: {
+          electricity: {
+            serviceType: "electricidad",
+            companyName: "Iberdrola Clientes",
+            meterNumber: "CONT-EL-9021",
+            cups: "ES002100000123456789AB1F",
+            readingValue: 14820,
+            unit: "kWh"
+          },
+          water: {
+            serviceType: "agua",
+            companyName: "Canal de Isabel II",
+            meterNumber: "AGUA-8831",
+            cups: "ES002200000987654321XY2C",
+            readingValue: 342,
+            unit: "m³"
+          }
+        }
+      });
+      title = `${doc.title} — ${pipelineCase.id}`;
+      description = `Acta de Entrega de Llaves, posesión y lectura de contadores con códigos CUPS.`;
+      content = `${doc.actText}\n\n=========================================\n${doc.utilityTransferAuthorizationText}`;
+      fileName = `Acta_Entrega_Llaves_CUPS_${pipelineCase.id}.pdf`;
+    }
+
+    const proposal: ActionProposal = {
+      id: `prop-pipe-${docType}-${Date.now()}`,
+      title,
+      description,
+      actionType: docType,
+      status: "pending",
+      fileName,
+      rawContent: content,
+      recipientEmail: "operaciones@inmobia360.com"
+    };
+
+    setSelectedProposal(proposal);
+    setApprovalModalOpen(true);
   };
 
   const handleSaveNewProperty = async (e: React.FormEvent) => {
@@ -791,6 +1039,9 @@ export default function BrokerDashboard() {
               <PriorityLeadsWidget 
                 onTriggerBrokerAction={handleTriggerBroker}
                 onOpenAllLeads={() => setActiveTab("leads")}
+                onGenerateVisitSheet={handleGenerateVisitSheetFromLead}
+                onGenerateArrasContract={handleGenerateArrasFromLead}
+                onConvertToPipeline={handleConvertToPipeline}
               />
 
               {/* Bloque: Propiedades Recientes en Cartera */}
@@ -858,14 +1109,24 @@ export default function BrokerDashboard() {
           {/* 3. CONTACTOS & LEADS */}
           {activeTab === "leads" && (
             <div className="max-w-7xl mx-auto space-y-6">
-              <PriorityLeadsWidget onTriggerBrokerAction={handleTriggerBroker} />
+              <PriorityLeadsWidget 
+                onTriggerBrokerAction={handleTriggerBroker}
+                onGenerateVisitSheet={handleGenerateVisitSheetFromLead}
+                onGenerateArrasContract={handleGenerateArrasFromLead}
+                onConvertToPipeline={handleConvertToPipeline}
+              />
             </div>
           )}
 
           {/* 4. PIPELINE KANBAN (7 FASES) */}
           {activeTab === "pipeline" && (
             <div className="max-w-7xl mx-auto">
-              <InteractivePipeline onExecuteBrokerCase={handleTriggerBroker} />
+              <InteractivePipeline 
+                cases={pipelineCases}
+                onCasesChange={setPipelineCases}
+                onExecuteBrokerCase={handleTriggerBroker}
+                onGenerateLegalDoc={handleGenerateLegalDocFromPipeline}
+              />
             </div>
           )}
 

@@ -1,68 +1,26 @@
 "use client";
 
 import React from "react";
-import { Phone, MessageSquare, Mail, Sparkles, ArrowUpRight, Trash2 } from "lucide-react";
+import { Phone, MessageSquare, Mail, Sparkles, ArrowUpRight, Trash2, FileCheck, Scale, FolderKanban } from "lucide-react";
+import { PriorityLead, PRIORITY_LEADS } from "@/lib/leads/leadTypes";
 
-export interface PriorityLead {
-  id: string;
-  name: string;
-  initials: string;
-  avatarBg: string;
-  category: string;
-  location: string;
-  budget: string;
-  timeframe: string;
-  score: number;
-  timeAgo: string;
-  inquiry: string;
-  recommendedAction: string;
-  phone: string;
-  suggestedPrompt: string;
-}
+export type { PriorityLead };
+export { PRIORITY_LEADS };
 
 interface PriorityLeadsWidgetProps {
   onTriggerBrokerAction: (prompt: string) => void;
   onOpenAllLeads?: () => void;
+  onGenerateVisitSheet?: (lead: PriorityLead) => void;
+  onGenerateArrasContract?: (lead: PriorityLead) => void;
+  onConvertToPipeline?: (lead: PriorityLead) => void;
 }
-
-export const PRIORITY_LEADS: PriorityLead[] = [
-  {
-    id: "lead-1",
-    name: "Carlos Romero (Family Office)",
-    initials: "CR",
-    avatarBg: "bg-blue-600",
-    category: "Compra",
-    location: "Madrid",
-    budget: "850.000 €",
-    timeframe: "Ahora",
-    score: 96,
-    timeAgo: "18:51",
-    inquiry: "Hola, buscamos un ático de 3 habitaciones en Barrio de Salamanca con terraza y garaje para inversión patrimonial. Contamos con 850.000€ al contado sin necesidad de hipoteca.",
-    recommendedAction: "Llamar en menos de 15 minutos y enviar dossier financiero de Cap Rate.",
-    phone: "+34 600 123 456",
-    suggestedPrompt: "Generar dossier financiero de rentabilidad neta y Cap Rate para Carlos Romero del Family Office sobre el ático de Salamanca."
-  },
-  {
-    id: "lead-2",
-    name: "Sophie Müller",
-    initials: "SM",
-    avatarBg: "bg-indigo-600",
-    category: "Compra",
-    location: "Santa Cruz de Tenerife (Canarias)",
-    budget: "1.300.000 €",
-    timeframe: "Ahora",
-    score: 95,
-    timeAgo: "15:15",
-    inquiry: "Hello, we are looking for a luxury villa in Tenerife South with sea views and holiday license. We are currently in Costa Adeje and would like to arrange a private viewing this Saturday.",
-    recommendedAction: "Contactar por WhatsApp en inglés para coordinar visita privada y transferir ficha técnica.",
-    phone: "+34 600 987 654",
-    suggestedPrompt: "Redactar mensaje de WhatsApp en inglés para Sophie Müller coordinando visita privada el sábado a la Villa de Costa Adeje con ficha técnica."
-  }
-];
 
 export const PriorityLeadsWidget: React.FC<PriorityLeadsWidgetProps> = ({ 
   onTriggerBrokerAction,
-  onOpenAllLeads
+  onOpenAllLeads,
+  onGenerateVisitSheet,
+  onGenerateArrasContract,
+  onConvertToPipeline
 }) => {
   return (
     <div className="space-y-4">
@@ -189,12 +147,33 @@ export const PriorityLeadsWidget: React.FC<PriorityLeadsWidgetProps> = ({
                 </a>
               </div>
 
-              <div className="flex items-center gap-2">
-                <select className="bg-slate-100 border border-slate-200 text-xs text-slate-700 rounded-xl px-2 py-1.5 font-medium outline-none">
-                  <option value="nuevo">Nuevo</option>
-                  <option value="contactado">Contactado</option>
-                  <option value="visita">Visita agendada</option>
-                </select>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  onClick={() => onGenerateVisitSheet ? onGenerateVisitSheet(lead) : onTriggerBrokerAction(`Generar Hoja de Visita oficial con reserva de honorarios para ${lead.name} por el inmueble en ${lead.location}`)}
+                  className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors"
+                  title="Generar Hoja de Encargo de Visita con blindaje de honorarios y firma digital"
+                >
+                  <FileCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Hoja Visita</span>
+                </button>
+                <button
+                  onClick={() => onGenerateArrasContract ? onGenerateArrasContract(lead) : onTriggerBrokerAction(`Redactar contrato de arras penitenciales según Art. 1454 C.C. para ${lead.name} con importe ${lead.budget} en ${lead.location}`)}
+                  className="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/80 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors"
+                  title="Redactar Contrato de Arras Penitenciales según Art. 1454 del Código Civil"
+                >
+                  <Scale className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Arras 1454</span>
+                </button>
+                {onConvertToPipeline && (
+                  <button
+                    onClick={() => onConvertToPipeline(lead)}
+                    className="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200/80 rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors"
+                    title="Convertir este lead en un expediente activo dentro del Pipeline Kanban"
+                  >
+                    <FolderKanban className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>A Pipeline</span>
+                  </button>
+                )}
                 <button
                   onClick={() => onTriggerBrokerAction(lead.suggestedPrompt)}
                   className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1 shadow-xs transition-colors"

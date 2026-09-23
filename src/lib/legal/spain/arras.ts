@@ -194,3 +194,6 @@ LA PARTE VENDEDORA                                LA PARTE COMPRADORA`;
     }
   };
 }
+
+export const generateArrasContract = generateArrasPenitencialesContract;
+

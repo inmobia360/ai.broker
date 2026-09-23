@@ -7,114 +7,53 @@ import {
   ArrowRight, 
   Clock, 
   Building2,
-  FileText
+  FileText,
+  FileCheck,
+  Scale,
+  KeyRound
 } from "lucide-react";
 
-export type PipelineStage = 
-  | "captacion"
-  | "calificacion"
-  | "comercializacion"
-  | "negociacion"
-  | "arras"
-  | "tramitacion_notarial"
-  | "postventa";
+import { 
+  PipelineStage, 
+  PipelineCase, 
+  INITIAL_PIPELINE_CASES, 
+  PIPELINE_STAGES 
+} from "@/lib/pipeline/pipelineTypes";
 
-export interface PipelineCase {
-  id: string;
-  title: string;
-  clientName: string;
-  price: string;
-  stage: PipelineStage;
-  pendingDoc: string;
-  suggestedAction: string;
-}
+export type { PipelineStage, PipelineCase };
+export { INITIAL_PIPELINE_CASES, PIPELINE_STAGES };
 
-export const INITIAL_PIPELINE_CASES: PipelineCase[] = [
-  {
-    id: "EXP-2026-001",
-    title: "Ático Dúplex en Salamanca",
-    clientName: "Carlos Romero (Comprador)",
-    price: "890.000 €",
-    stage: "negociacion",
-    pendingDoc: "Cálculo de Banda de Cierre y ZOPA",
-    suggestedAction: "Analizar banda de negociación y oferta en firme para el ático de Salamanca"
-  },
-  {
-    id: "EXP-2026-002",
-    title: "Villa de Lujo en Costa Adeje",
-    clientName: "Sophie Müller (Visitante)",
-    price: "1.450.000 €",
-    stage: "comercializacion",
-    pendingDoc: "Hoja de Visita con Reserva de Honorarios",
-    suggestedAction: "Preparar hoja de visita con blindaje de honorarios para Sophie Müller en Tenerife"
-  },
-  {
-    id: "EXP-2026-003",
-    title: "Piso Modernista Eixample",
-    clientName: "Elena Rostova (Inversora)",
-    price: "620.000 €",
-    stage: "calificacion",
-    pendingDoc: "Auditoría de Contingencias y Cargas",
-    suggestedAction: "Auditar nota simple y cargas registrales para el piso de Eixample Barcelona"
-  },
-  {
-    id: "EXP-2026-004",
-    title: "Ático Malvarrosa Valencia",
-    clientName: "Marcos Valls (Comprador)",
-    price: "475.000 €",
-    stage: "arras",
-    pendingDoc: "Contrato de Arras Penitenciales (Art. 1454 C.C.)",
-    suggestedAction: "Redactar contrato de arras penitenciales con señal del 10% para el ático de Valencia"
-  },
-  {
-    id: "EXP-2026-005",
-    title: "Piso Paseo de la Castellana",
-    clientName: "Inmobiliaria Albia (Vendedora)",
-    price: "520.000 €",
-    stage: "tramitacion_notarial",
-    pendingDoc: "Certificado Deuda Cero LPH (Art. 9.1.e) y CEE",
-    suggestedAction: "Solicitar certificado de deuda cero LPH al Administrador de Fincas para Castellana"
-  },
-  {
-    id: "EXP-2026-006",
-    title: "Casa Señorial Santa Cruz Sevilla",
-    clientName: "Familia Benjumea",
-    price: "540.000 €",
-    stage: "captacion",
-    pendingDoc: "Dossier de Prevaloración ACM para Captación",
-    suggestedAction: "Elaborar informe de prevaloración ACM para la captación en exclusiva de Santa Cruz"
-  },
-  {
-    id: "EXP-2026-007",
-    title: "Chalet en Las Rozas Madrid",
-    clientName: "Roberto Gómez (Comprador)",
-    price: "730.000 €",
-    stage: "postventa",
-    pendingDoc: "Acta de Llaves y Lectura de Contadores CUPS",
-    suggestedAction: "Generar acta de entrega de llaves y lectura de contadores con cambio de suministros"
-  }
-];
-
-export const PIPELINE_STAGES: Array<{ id: PipelineStage; name: string; stepNumber: number; color: string }> = [
-  { id: "captacion", name: "1. Captación", stepNumber: 1, color: "border-blue-200 text-blue-700 bg-blue-50" },
-  { id: "calificacion", name: "2. Calificación", stepNumber: 2, color: "border-cyan-200 text-cyan-700 bg-cyan-50" },
-  { id: "comercializacion", name: "3. Comercialización", stepNumber: 3, color: "border-indigo-200 text-indigo-700 bg-indigo-50" },
-  { id: "negociacion", name: "4. Negociación", stepNumber: 4, color: "border-amber-200 text-amber-700 bg-amber-50" },
-  { id: "arras", name: "5. Arras C.C.", stepNumber: 5, color: "border-orange-200 text-orange-700 bg-orange-50" },
-  { id: "tramitacion_notarial", name: "6. Notaría & LPH", stepNumber: 6, color: "border-purple-200 text-purple-700 bg-purple-50" },
-  { id: "postventa", name: "7. Postventa", stepNumber: 7, color: "border-emerald-200 text-emerald-700 bg-emerald-50" }
-];
-
-interface InteractivePipelineProps {
+export interface InteractivePipelineProps {
+  cases?: PipelineCase[];
+  onCasesChange?: (cases: PipelineCase[]) => void;
   onExecuteBrokerCase: (suggestedAction: string) => void;
+  onGenerateLegalDoc?: (docType: "visita" | "arras" | "lph" | "acta_llaves", pipelineCase: PipelineCase) => void;
 }
 
-export const InteractivePipeline: React.FC<InteractivePipelineProps> = ({ onExecuteBrokerCase }) => {
-  const [cases, setCases] = useState<PipelineCase[]>(INITIAL_PIPELINE_CASES);
+export const InteractivePipeline: React.FC<InteractivePipelineProps> = ({ 
+  cases: propCases,
+  onCasesChange,
+  onExecuteBrokerCase,
+  onGenerateLegalDoc
+}) => {
+  const [internalCases, setInternalCases] = useState<PipelineCase[]>(INITIAL_PIPELINE_CASES);
+  const currentCases = propCases || internalCases;
   const [activeStageFilter, setActiveStageFilter] = useState<PipelineStage | "todos">("todos");
 
+  const updateCases = (updater: (prev: PipelineCase[]) => PipelineCase[]) => {
+    if (onCasesChange && propCases) {
+      onCasesChange(updater(propCases));
+    } else {
+      setInternalCases(updater);
+    }
+  };
+
+  const setCaseStage = (caseId: string, newStage: PipelineStage) => {
+    updateCases(prev => prev.map(c => c.id === caseId ? { ...c, stage: newStage } : c));
+  };
+
   const moveCaseToNextStage = (caseId: string) => {
-    setCases(prev => prev.map(c => {
+    updateCases(prev => prev.map(c => {
       if (c.id !== caseId) return c;
       const currentIndex = PIPELINE_STAGES.findIndex(s => s.id === c.stage);
       if (currentIndex < PIPELINE_STAGES.length - 1) {
@@ -126,8 +65,8 @@ export const InteractivePipeline: React.FC<InteractivePipelineProps> = ({ onExec
   };
 
   const filteredCases = activeStageFilter === "todos" 
-    ? cases 
-    : cases.filter(c => c.stage === activeStageFilter);
+    ? currentCases 
+    : currentCases.filter(c => c.stage === activeStageFilter);
 
   return (
     <div className="space-y-6">
@@ -151,10 +90,10 @@ export const InteractivePipeline: React.FC<InteractivePipelineProps> = ({ onExec
               activeStageFilter === "todos" ? "bg-blue-600 text-white shadow-xs" : "bg-white text-slate-600 border border-slate-200 hover:text-slate-900"
             }`}
           >
-            Todas ({cases.length})
+            Todas ({currentCases.length})
           </button>
           {PIPELINE_STAGES.map(stage => {
-            const count = cases.filter(c => c.stage === stage.id).length;
+            const count = currentCases.filter(c => c.stage === stage.id).length;
             return (
               <button
                 key={stage.id}
@@ -173,7 +112,7 @@ export const InteractivePipeline: React.FC<InteractivePipelineProps> = ({ onExec
       {/* Tablero Kanban de 7 Columnas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3.5 overflow-x-auto pb-4">
         {PIPELINE_STAGES.map(stage => {
-          const stageCases = cases.filter(c => c.stage === stage.id);
+          const stageCases = currentCases.filter(c => c.stage === stage.id);
           const isFilterActive = activeStageFilter === "todos" || activeStageFilter === stage.id;
 
           if (!isFilterActive) return null;
@@ -218,15 +157,68 @@ export const InteractivePipeline: React.FC<InteractivePipelineProps> = ({ onExec
                           <span className="line-clamp-2">{c.pendingDoc}</span>
                         </div>
 
-                        <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-1.5">
-                          <button
-                            onClick={() => onExecuteBrokerCase(c.suggestedAction)}
-                            className="flex-1 py-1.5 px-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition-colors"
-                            title="Tramitar acción en Consola BROKER"
+                        {/* Selector directo de fase */}
+                        <div className="flex items-center justify-between gap-1 text-[10px] pt-1">
+                          <span className="text-slate-400 font-semibold">Cambiar fase:</span>
+                          <select
+                            value={c.stage}
+                            onChange={(e) => setCaseStage(c.id, e.target.value as PipelineStage)}
+                            className="bg-white border border-slate-200 rounded-md px-1 py-0.5 text-slate-700 font-bold text-[9px] focus:outline-none"
                           >
-                            <Sparkles className="w-2.5 h-2.5 text-amber-500" />
-                            Tramitar
-                          </button>
+                            {PIPELINE_STAGES.map(s => (
+                              <option key={s.id} value={s.id}>{s.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-1.5">
+                          {c.stage === "comercializacion" && onGenerateLegalDoc ? (
+                            <button
+                              onClick={() => onGenerateLegalDoc("visita", c)}
+                              className="flex-1 py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition-colors"
+                              title="Generar Hoja de Visita con blindaje de honorarios"
+                            >
+                              <FileCheck className="w-3 h-3 text-emerald-600" />
+                              Hoja Visita
+                            </button>
+                          ) : (c.stage === "arras" || c.stage === "negociacion") && onGenerateLegalDoc ? (
+                            <button
+                              onClick={() => onGenerateLegalDoc("arras", c)}
+                              className="flex-1 py-1.5 px-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition-colors"
+                              title="Redactar Contrato de Arras Penitenciales (Art. 1454 C.C.)"
+                            >
+                              <Scale className="w-3 h-3 text-amber-600" />
+                              Arras 1454
+                            </button>
+                          ) : c.stage === "tramitacion_notarial" && onGenerateLegalDoc ? (
+                            <button
+                              onClick={() => onGenerateLegalDoc("lph", c)}
+                              className="flex-1 py-1.5 px-2 bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition-colors"
+                              title="Requerir Certificado Deuda Cero LPH Art. 9.1.e"
+                            >
+                              <Building2 className="w-3 h-3 text-purple-600" />
+                              Deuda LPH
+                            </button>
+                          ) : c.stage === "postventa" && onGenerateLegalDoc ? (
+                            <button
+                              onClick={() => onGenerateLegalDoc("acta_llaves", c)}
+                              className="flex-1 py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition-colors"
+                              title="Generar Acta de Entrega de Llaves y CUPS"
+                            >
+                              <KeyRound className="w-3 h-3 text-emerald-600" />
+                              Acta Llaves
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => onExecuteBrokerCase(c.suggestedAction)}
+                              className="flex-1 py-1.5 px-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition-colors"
+                              title="Tramitar acción en Consola BROKER"
+                            >
+                              <Sparkles className="w-2.5 h-2.5 text-amber-500" />
+                              Tramitar
+                            </button>
+                          )}
+
                           {stage.stepNumber < 7 && (
                             <button
                               onClick={() => moveCaseToNextStage(c.id)}
