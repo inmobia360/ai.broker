@@ -94,6 +94,9 @@ export function generateVisitSheet(input: VisitSheetInput = {}): VisitSheetOutpu
   const direccionInmueble = resolveField(input.inmueble?.direccion, "DIRECCION_INMUEBLE");
   const refCatastral = resolveField(input.inmueble?.referenciaCatastral, "REFERENCIA_CATASTRAL");
   const tipoOp = input.inmueble?.tipoOperacion === "alquiler" ? "Arrendamiento" : "Compraventa";
+  const precioOrientativo = input.inmueble?.precioOrientativo
+    ? new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(input.inmueble.precioOrientativo)
+    : null;
 
   // Honorarios
   const pctHonorarios = input.honorarios?.porcentajeHonorariosVenta ?? 3.0;
@@ -115,7 +118,7 @@ Correo electrónico: ${visitanteEmail}
 DATOS DEL INMUEBLE OBJETO DE LA VISITA:
 Dirección completa: ${direccionInmueble}
 Referencia Catastral: ${refCatastral}
-Operación interesada: ${tipoOp}
+Operación interesada: ${tipoOp}${precioOrientativo ? `\nPrecio orientativo de salida: ${precioOrientativo}` : ""}
 
 MANIFESTACIONES Y ESTIPULACIONES:
 

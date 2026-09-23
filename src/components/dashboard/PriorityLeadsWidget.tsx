@@ -8,6 +8,7 @@ export type { PriorityLead };
 export { PRIORITY_LEADS };
 
 interface PriorityLeadsWidgetProps {
+  leads?: PriorityLead[];
   onTriggerBrokerAction: (prompt: string) => void;
   onOpenAllLeads?: () => void;
   onGenerateVisitSheet?: (lead: PriorityLead) => void;
@@ -16,12 +17,14 @@ interface PriorityLeadsWidgetProps {
 }
 
 export const PriorityLeadsWidget: React.FC<PriorityLeadsWidgetProps> = ({ 
+  leads,
   onTriggerBrokerAction,
   onOpenAllLeads,
   onGenerateVisitSheet,
   onGenerateArrasContract,
   onConvertToPipeline
 }) => {
+  const displayedLeads = leads && leads.length > 0 ? leads : PRIORITY_LEADS;
   return (
     <div className="space-y-4">
       {/* Cabecera idéntica a inmobia360.com */}
@@ -45,7 +48,7 @@ export const PriorityLeadsWidget: React.FC<PriorityLeadsWidgetProps> = ({
 
       {/* Tarjetas de Leads Calientes */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {PRIORITY_LEADS.map((lead) => (
+        {displayedLeads.map((lead) => (
           <div 
             key={lead.id}
             className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex flex-col justify-between space-y-4"

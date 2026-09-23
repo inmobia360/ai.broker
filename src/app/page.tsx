@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { DraftApprovalModal, ActionProposal } from "@/components/DraftApprovalModal";
 import { MetricCards } from "@/components/dashboard/MetricCards";
-import { PriorityLeadsWidget, PriorityLead } from "@/components/dashboard/PriorityLeadsWidget";
+import { PriorityLeadsWidget, PriorityLead, PRIORITY_LEADS } from "@/components/dashboard/PriorityLeadsWidget";
 import { PropertyCatalog, DEMO_PROPERTIES, PropertyItem } from "@/components/dashboard/PropertyCatalog";
 import { InteractivePipeline, PipelineCase, INITIAL_PIPELINE_CASES } from "@/components/dashboard/InteractivePipeline";
 import { InteractiveCMA } from "@/components/dashboard/InteractiveCMA";
@@ -87,9 +87,10 @@ export default function BrokerDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [thinkingStep, setThinkingStep] = useState("");
   
-  // Marca Blanca y Propiedades Dinámicas
+  // Marca Blanca, Leads y Propiedades Dinámicas
   const [brandConfig, setBrandConfig] = useState<WhiteLabelConfig>(getDefaultWhiteLabelConfig("inmobia360"));
   const [properties, setProperties] = useState<PropertyItem[]>(DEMO_PROPERTIES);
+  const [leads, setLeads] = useState<PriorityLead[]>(PRIORITY_LEADS);
   const [pipelineCases, setPipelineCases] = useState<PipelineCase[]>(INITIAL_PIPELINE_CASES);
   const [selectedPropertyForCMA, setSelectedPropertyForCMA] = useState<PropertyItem | null>(null);
   const [newPropertyModalOpen, setNewPropertyModalOpen] = useState(false);
@@ -211,6 +212,38 @@ export default function BrokerDashboard() {
       const dataProps = await resProps.json();
       if (dataProps.ok && Array.isArray(dataProps.data) && dataProps.data.length > 0) {
         setProperties(dataProps.data);
+      }
+    } catch {}
+
+    try {
+      const resLeads = await fetch("/api/leads");
+      const dataLeads = await resLeads.json();
+      if (dataLeads.ok && Array.isArray(dataLeads.data) && dataLeads.data.length > 0) {
+        const formattedLeads: PriorityLead[] = dataLeads.data.map((l: any, idx: number) => ({
+          id: l.id || `lead-${idx}`,
+          name: l.full_name || l.name || "Contacto",
+          initials: (l.full_name || l.name || "CO").split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase(),
+          avatarBg: idx % 2 === 0 ? "bg-blue-600" : "bg-indigo-600",
+          category: l.intent_type === "rent" ? "Alquiler" : l.intent_type === "invest" ? "Inversión" : "Compra",
+          location: l.location_preference || "Madrid",
+          budget: typeof l.budget === "number" && l.budget > 0 ? `${l.budget.toLocaleString("es-ES")} €` : (l.budget || "A consultar"),
+          timeframe: l.timeframe || "Ahora",
+          score: l.hot_score || l.score || 85,
+          timeAgo: l.created_at ? new Date(l.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Reciente",
+          inquiry: l.demand_quote || l.message || "Interesado en inmuebles de la cartera.",
+          recommendedAction: l.recommended_action || "Llamar y calificar solvencia comercial.",
+          phone: l.phone || "+34 600 000 000",
+          suggestedPrompt: `Contactar a ${l.full_name || l.name} para coordinar visita y analizar capacidad financiera.`
+        }));
+        setLeads(formattedLeads);
+      }
+    } catch {}
+
+    try {
+      const resPipe = await fetch("/api/pipeline");
+      const dataPipe = await resPipe.json();
+      if (dataPipe.ok && Array.isArray(dataPipe.data) && dataPipe.data.length > 0) {
+        setPipelineCases(dataPipe.data);
       }
     } catch {}
 
@@ -488,7 +521,7 @@ export default function BrokerDashboard() {
     setApprovalModalOpen(true);
   };
 
-  const handleConvertToPipeline = (lead: PriorityLead) => {
+  const handleConvertToPipeline = async (lead: PriorityLead) => {
     const newCase: PipelineCase = {
       id: `EXP-2026-${String(pipelineCases.length + 1).padStart(3, "0")}`,
       title: `Operación ${lead.name.split(" ")[0]} — ${lead.location}`,
@@ -499,6 +532,27 @@ export default function BrokerDashboard() {
       suggestedAction: lead.suggestedPrompt
     };
     setPipelineCases(prev => [newCase, ...prev]);
+
+    try {
+      const rawPrice = parseFloat(lead.budget.replace(/[^0-9.]/g, "")) || 0;
+      await fetch("/api/pipeline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newCase.title,
+          lead_id: lead.id,
+          stage: "comercializacion",
+          deal_value: rawPrice,
+          metadata: { clientName: lead.name, location: lead.location }
+        })
+      });
+      await fetch("/api/leads", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: lead.id, status: "scheduled" })
+      });
+    } catch {}
+
     setActiveTab("pipeline");
   };
 
@@ -1056,6 +1110,7 @@ export default function BrokerDashboard() {
               <MetricCards onQuickAction={handleDashboardQuickAction} />
               
               <PriorityLeadsWidget 
+                leads={leads}
                 onTriggerBrokerAction={handleTriggerBroker}
                 onOpenAllLeads={() => setActiveTab("leads")}
                 onGenerateVisitSheet={handleGenerateVisitSheetFromLead}
@@ -1129,6 +1184,7 @@ export default function BrokerDashboard() {
           {activeTab === "leads" && (
             <div className="max-w-7xl mx-auto space-y-6">
               <PriorityLeadsWidget 
+                leads={leads}
                 onTriggerBrokerAction={handleTriggerBroker}
                 onGenerateVisitSheet={handleGenerateVisitSheetFromLead}
                 onGenerateArrasContract={handleGenerateArrasFromLead}
