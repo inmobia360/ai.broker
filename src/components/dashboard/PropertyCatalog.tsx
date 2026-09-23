@@ -125,15 +125,23 @@ export const DEMO_PROPERTIES: PropertyItem[] = [
 ];
 
 interface PropertyCatalogProps {
+  properties?: PropertyItem[];
   onSelectPropertyAction: (actionType: "chat" | "cma" | "content", property: PropertyItem) => void;
+  onOpenNewPropertyModal?: () => void;
 }
 
-export const PropertyCatalog: React.FC<PropertyCatalogProps> = ({ onSelectPropertyAction }) => {
+export const PropertyCatalog: React.FC<PropertyCatalogProps> = ({ 
+  properties = DEMO_PROPERTIES, 
+  onSelectPropertyAction,
+  onOpenNewPropertyModal
+}) => {
   const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedPropertyForMap, setSelectedPropertyForMap] = useState<PropertyItem>(DEMO_PROPERTIES[0]);
+  const [selectedPropertyForMap, setSelectedPropertyForMap] = useState<PropertyItem>(properties[0] || DEMO_PROPERTIES[0]);
 
-  const filteredProperties = DEMO_PROPERTIES.filter(p => 
+  const activeProperties = properties.length > 0 ? properties : DEMO_PROPERTIES;
+
+  const filteredProperties = activeProperties.filter(p => 
     p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.location.toLowerCase().includes(searchTerm.toLowerCase())
   );

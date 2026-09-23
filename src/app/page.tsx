@@ -79,8 +79,20 @@ export default function BrokerDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [thinkingStep, setThinkingStep] = useState("");
   
-  // Marca Blanca
+  // Marca Blanca y Propiedades Dinámicas
   const [brandConfig, setBrandConfig] = useState<WhiteLabelConfig>(getDefaultWhiteLabelConfig("inmobia360"));
+  const [properties, setProperties] = useState<PropertyItem[]>(DEMO_PROPERTIES);
+  const [newPropertyModalOpen, setNewPropertyModalOpen] = useState(false);
+  const [isSavingProperty, setIsSavingProperty] = useState(false);
+  const [newPropForm, setNewPropForm] = useState({
+    title: "",
+    price: "",
+    location: "Madrid",
+    bedrooms: 2,
+    bathrooms: 1,
+    built_area_m2: 85,
+    operation_type: "sale" as "sale" | "rent"
+  });
 
   // Modal de aprobación Human-in-the-Loop
   const [approvalModalOpen, setApprovalModalOpen] = useState(false);
@@ -127,8 +139,27 @@ export default function BrokerDashboard() {
     }
   };
 
+  const fetchInitialData = async () => {
+    try {
+      const resProps = await fetch("/api/properties");
+      const dataProps = await resProps.json();
+      if (dataProps.ok && Array.isArray(dataProps.data) && dataProps.data.length > 0) {
+        setProperties(dataProps.data);
+      }
+    } catch {}
+
+    try {
+      const resBrand = await fetch("/api/settings/brand");
+      const dataBrand = await resBrand.json();
+      if (dataBrand.ok && dataBrand.data) {
+        setBrandConfig(dataBrand.data);
+      }
+    } catch {}
+  };
+
   useEffect(() => {
     fetchHealth();
+    fetchInitialData();
   }, []);
 
   const handleSendMessage = async (customText?: string) => {
@@ -302,8 +333,73 @@ export default function BrokerDashboard() {
     URL.revokeObjectURL(url);
   };
 
+  const handleSaveNewProperty = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPropForm.title.trim() || !newPropForm.price) return;
+    setIsSavingProperty(true);
+    try {
+      const rawPrice = newPropForm.price.replace(/[. €\s]/g, "");
+      const numericPrice = parseFloat(rawPrice) || 250000;
+      const res = await fetch("/api/properties", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newPropForm.title,
+          price: numericPrice,
+          location: newPropForm.location,
+          bedrooms: Number(newPropForm.bedrooms),
+          bathrooms: Number(newPropForm.bathrooms),
+          built_area_m2: Number(newPropForm.built_area_m2),
+          operation_type: newPropForm.operation_type,
+          status: "active",
+          walkscore: 88,
+          highlights: ["Nueva Captación", "Exclusiva"]
+        })
+      });
+      const data = await res.json();
+      if (data.ok && data.data) {
+        const newItem: PropertyItem = {
+          id: data.data.id || `prop-${Date.now()}`,
+          title: data.data.title,
+          location: data.data.location,
+          address: data.data.location,
+          price: data.data.price,
+          formattedPrice: `${data.data.price.toLocaleString("es-ES")} €`,
+          m2: data.data.built_area_m2 || data.data.m2 || 85,
+          rooms: data.data.bedrooms || data.data.rooms || 2,
+          baths: data.data.bathrooms || data.data.baths || 1,
+          status: "disponible",
+          type: data.data.operation_type === "rent" ? "Alquiler" : "Venta",
+          description: `Inmueble captado recientemente en ${data.data.location}. Exclusiva verificada.`,
+          coordinates: { lat: 40.4168, lng: -3.7038 },
+          imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
+        };
+        setProperties(prev => [newItem, ...prev]);
+        setNewPropertyModalOpen(false);
+        setNewPropForm({
+          title: "",
+          price: "",
+          location: "Madrid",
+          bedrooms: 2,
+          bathrooms: 1,
+          built_area_m2: 85,
+          operation_type: "sale"
+        });
+        setActiveTab("properties");
+      }
+    } catch {
+      alert("Error al guardar la propiedad en la base de datos.");
+    } finally {
+      setIsSavingProperty(false);
+    }
+  };
+
   const handleDashboardQuickAction = (target: "properties" | "cma" | "content" | "leads") => {
-    setActiveTab(target);
+    if (target === "properties") {
+      setNewPropertyModalOpen(true);
+    } else {
+      setActiveTab(target);
+    }
   };
 
   const handleTriggerBroker = (promptText: string) => {
@@ -347,8 +443,8 @@ export default function BrokerDashboard() {
           {/* Botón "+ Nueva Propiedad" Naranja */}
           <div className="p-4">
             <button
-              onClick={() => setActiveTab("properties")}
-              className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm shadow-orange-500/20 transition-all"
+              onClick={() => setNewPropertyModalOpen(true)}
+              className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm shadow-orange-500/20 transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               Nueva Propiedad
@@ -645,13 +741,13 @@ export default function BrokerDashboard() {
                     onClick={() => setActiveTab("properties")}
                     className="text-xs text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 transition-colors"
                   >
-                    Ver todas las propiedades ({DEMO_PROPERTIES.length})
+                    Ver todas las propiedades ({properties.length})
                     <ArrowUpRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  {DEMO_PROPERTIES.slice(0, 3).map(property => (
+                  {properties.slice(0, 3).map(property => (
                     <div 
                       key={property.id}
                       onClick={() => setActiveTab("properties")}
@@ -688,7 +784,11 @@ export default function BrokerDashboard() {
           {/* 2. PROPIEDADES & MAPA */}
           {activeTab === "properties" && (
             <div className="max-w-7xl mx-auto">
-              <PropertyCatalog onSelectPropertyAction={handlePropertyAction} />
+              <PropertyCatalog 
+                properties={properties}
+                onSelectPropertyAction={handlePropertyAction} 
+                onOpenNewPropertyModal={() => setNewPropertyModalOpen(true)}
+              />
             </div>
           )}
 
@@ -928,6 +1028,155 @@ export default function BrokerDashboard() {
           onConfirmApproval={handleConfirmApproval}
           isLoading={isApproving}
         />
+      )}
+
+      {/* MODAL NUEVA PROPIEDAD */}
+      {newPropertyModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-2xl bg-orange-50 text-orange-600">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Nueva Propiedad en Cartera</h3>
+                  <p className="text-xs text-slate-400">Persistencia real en base de datos PostgreSQL</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setNewPropertyModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveNewProperty} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Título de la Propiedad</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej: Ático Reformado con Terraza en Chamberí"
+                  value={newPropForm.title}
+                  onChange={e => setNewPropForm({...newPropForm, title: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Precio (€)</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ej: 450.000"
+                    value={newPropForm.price}
+                    onChange={e => setNewPropForm({...newPropForm, price: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Ubicación / Ciudad</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ej: Chamberí, Madrid"
+                    value={newPropForm.location}
+                    onChange={e => setNewPropForm({...newPropForm, location: e.target.value})}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Superficie (m²)</label>
+                  <input
+                    type="number"
+                    value={newPropForm.built_area_m2}
+                    onChange={e => setNewPropForm({...newPropForm, built_area_m2: Number(e.target.value)})}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Dormitorios</label>
+                  <input
+                    type="number"
+                    value={newPropForm.bedrooms}
+                    onChange={e => setNewPropForm({...newPropForm, bedrooms: Number(e.target.value)})}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Baños</label>
+                  <input
+                    type="number"
+                    value={newPropForm.bathrooms}
+                    onChange={e => setNewPropForm({...newPropForm, bathrooms: Number(e.target.value)})}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Tipo de Operación</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewPropForm({...newPropForm, operation_type: "sale"})}
+                    className={`py-2 px-3 rounded-xl border text-center font-bold transition-all ${
+                      newPropForm.operation_type === "sale"
+                        ? "border-blue-600 bg-blue-50 text-blue-900"
+                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    Venta
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewPropForm({...newPropForm, operation_type: "rent"})}
+                    className={`py-2 px-3 rounded-xl border text-center font-bold transition-all ${
+                      newPropForm.operation_type === "rent"
+                        ? "border-blue-600 bg-blue-50 text-blue-900"
+                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    Alquiler
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setNewPropertyModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingProperty}
+                  className="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold flex items-center gap-2 shadow-xs transition-colors"
+                >
+                  {isSavingProperty ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Guardando...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      Guardar Inmueble
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );
