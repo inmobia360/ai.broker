@@ -8,8 +8,7 @@ import {
   Share2, 
   FileText, 
   MessageSquare, 
-  Send,
-  Building2
+  Send
 } from "lucide-react";
 import { DEMO_PROPERTIES } from "./PropertyCatalog";
 
@@ -47,7 +46,6 @@ export const ContentStudioAI: React.FC<ContentStudioAIProps> = ({ onSendToBroker
 
   const selectedProperty = DEMO_PROPERTIES.find(p => p.id === selectedPropId) || DEMO_PROPERTIES[0];
 
-  // Generar copys multicanal
   const generatedCopyPortal = formatPortalDescription(selectedProperty);
 
   const generatedSocialCopy = `✨ EXCLUSIVA INMOBILIARIA EN ${selectedProperty.location.toUpperCase()} ✨
@@ -95,11 +93,11 @@ Dossier y fotos en alta resolución disponibles. Si encaja con tus criterios de 
       {/* Cabecera */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-purple-400" />
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-600" />
             Estudio de Contenidos IA & Generador de Anuncios
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500">
             Redacción omnicanal persuasiva y adaptada a la legislación española para portales y redes
           </p>
         </div>
@@ -107,9 +105,9 @@ Dossier y fotos en alta resolución disponibles. Si encaja con tus criterios de 
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Selector de Inmueble y Canal (4 columnas) */}
-        <div className="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-5">
+        <div className="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-5 space-y-5 shadow-xs">
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
               Inmueble a Promocionar
             </label>
             <div className="mt-2 space-y-2">
@@ -119,14 +117,14 @@ Dossier y fotos en alta resolución disponibles. Si encaja con tus criterios de 
                   onClick={() => setSelectedPropId(prop.id)}
                   className={`w-full p-3 rounded-xl border text-left text-xs transition-all flex items-center gap-3 ${
                     selectedPropId === prop.id 
-                      ? "bg-blue-600/20 border-blue-500/40 text-white" 
-                      : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
+                      ? "bg-blue-50 border-blue-300 text-blue-900 shadow-xs" 
+                      : "bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                   }`}
                 >
                   <img src={prop.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
                   <div className="overflow-hidden">
-                    <div className="font-semibold truncate">{prop.title}</div>
-                    <div className="text-[10px] text-emerald-400">{prop.formattedPrice} · {prop.m2} m²</div>
+                    <div className="font-bold truncate">{prop.title}</div>
+                    <div className="text-[10px] text-emerald-600 font-semibold">{prop.formattedPrice} · {prop.m2} m²</div>
                   </div>
                 </button>
               ))}
@@ -134,41 +132,41 @@ Dossier y fotos en alta resolución disponibles. Si encaja con tus criterios de 
           </div>
 
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
               Canal de Publicación
             </label>
             <div className="mt-2 grid grid-cols-3 gap-2">
               <button
                 onClick={() => setChannel("portal")}
-                className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center gap-1.5 transition-all ${
+                className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all ${
                   channel === "portal" 
-                    ? "bg-purple-600/20 border-purple-500 text-purple-300" 
-                    : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
+                    ? "bg-purple-50 border-purple-300 text-purple-700 shadow-xs" 
+                    : "bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                 }`}
               >
-                <FileText className="w-4 h-4" />
+                <FileText className="w-4 h-4 text-purple-600" />
                 <span>Portales</span>
               </button>
               <button
                 onClick={() => setChannel("social")}
-                className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center gap-1.5 transition-all ${
+                className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all ${
                   channel === "social" 
-                    ? "bg-purple-600/20 border-purple-500 text-purple-300" 
-                    : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
+                    ? "bg-purple-50 border-purple-300 text-purple-700 shadow-xs" 
+                    : "bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                 }`}
               >
-                <Share2 className="w-4 h-4" />
+                <Share2 className="w-4 h-4 text-purple-600" />
                 <span>Redes</span>
               </button>
               <button
                 onClick={() => setChannel("whatsapp")}
-                className={`p-2.5 rounded-xl border text-xs font-medium flex flex-col items-center gap-1.5 transition-all ${
+                className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all ${
                   channel === "whatsapp" 
-                    ? "bg-purple-600/20 border-purple-500 text-purple-300" 
-                    : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
+                    ? "bg-purple-50 border-purple-300 text-purple-700 shadow-xs" 
+                    : "bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                 }`}
               >
-                <MessageSquare className="w-4 h-4" />
+                <MessageSquare className="w-4 h-4 text-emerald-600" />
                 <span>WhatsApp</span>
               </button>
             </div>
@@ -176,20 +174,20 @@ Dossier y fotos en alta resolución disponibles. Si encaja con tus criterios de 
         </div>
 
         {/* Visor y Editor del Copy Generado (8 columnas) */}
-        <div className="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-8 bg-white border border-slate-200 rounded-2xl p-5 flex flex-col justify-between space-y-4 shadow-xs">
           <div className="space-y-3">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 font-medium">
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-bold">
                   {channel === "portal" ? "Idealista / Fotocasa / Habitaclia" : channel === "social" ? "Redes Sociales & Copywriting" : "Prospección Directa WhatsApp"}
                 </span>
-                <span className="text-xs text-slate-400">· {selectedProperty.title}</span>
+                <span className="text-xs text-slate-500 font-medium">· {selectedProperty.title}</span>
               </div>
               <button
                 onClick={handleCopy}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors border border-slate-700"
+                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors border border-slate-200"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                 {copied ? "¡Copiado!" : "Copiar Texto"}
               </button>
             </div>
@@ -198,17 +196,17 @@ Dossier y fotos en alta resolución disponibles. Si encaja con tus criterios de 
               readOnly
               value={currentCopy}
               rows={14}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs font-sans text-slate-200 leading-relaxed outline-none resize-none focus:border-purple-500/40"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs font-sans text-slate-800 leading-relaxed outline-none resize-none focus:border-purple-400"
             />
           </div>
 
-          <div className="pt-3 border-t border-slate-800 flex items-center justify-between gap-3">
-            <span className="text-[11px] text-slate-500">
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+            <span className="text-[11px] text-slate-400 font-medium">
               Generado con el motor cognitivo de IA normativo en español peninsular
             </span>
             <button
               onClick={() => onSendToBroker(`Reescribir el anuncio de ${selectedProperty.title} con un enfoque exclusivo para inversores de alta rentabilidad patrimonial.`)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors shadow-sm"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs"
             >
               <Send className="w-3.5 h-3.5" />
               Pedir Ajuste al Director BROKER

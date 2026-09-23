@@ -3,11 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { 
   Building2, 
-  LayoutDashboard,
+  LayoutGrid,
   MessageSquare, 
   FolderKanban, 
   FileText, 
-  BrainCircuit, 
   KeyRound, 
   ShieldCheck, 
   Send, 
@@ -23,9 +22,13 @@ import {
   UserCheck,
   Users,
   Calculator,
-  Palette,
-  Layers,
-  MapPin
+  Settings,
+  Plus,
+  Moon,
+  Bell,
+  Globe,
+  ArrowUpRight,
+  FileCheck
 } from "lucide-react";
 import { DraftApprovalModal, ActionProposal } from "@/components/DraftApprovalModal";
 import { MetricCards } from "@/components/dashboard/MetricCards";
@@ -79,7 +82,7 @@ export default function BrokerDashboard() {
   // Marca Blanca
   const [brandConfig, setBrandConfig] = useState<WhiteLabelConfig>(getDefaultWhiteLabelConfig("inmobia360"));
 
-  // Estado para el modal de aprobación Human-in-the-Loop
+  // Modal de aprobación Human-in-the-Loop
   const [approvalModalOpen, setApprovalModalOpen] = useState(false);
   const [selectedProposal, setSelectedProposal] = useState<ActionProposal | null>(null);
   const [isApproving, setIsApproving] = useState(false);
@@ -103,7 +106,6 @@ export default function BrokerDashboard() {
     { id: "doc-3", name: "Dossier_ACM_Captacion_Salamanca.pdf", size: "3.2 MB", date: "22/09/2026", status: "Generado", channel: "Tasador ACM" }
   ]);
 
-  // Consultar salud del sistema al iniciar
   const fetchHealth = async () => {
     setIsCheckingHealth(true);
     try {
@@ -171,7 +173,6 @@ export default function BrokerDashboard() {
         }));
       }
 
-      // Si la consulta fue sobre Arras, Alquiler o Visita y no vinieron propuestas directas, estructurarla
       if (formattedProposals.length === 0 && (textToSend.toLowerCase().includes("arras") || textToSend.toLowerCase().includes("alquiler") || textToSend.toLowerCase().includes("visita") || textToSend.toLowerCase().includes("lph") || textToSend.toLowerCase().includes("llaves"))) {
         const isArras = textToSend.toLowerCase().includes("arras");
         const isAlquiler = textToSend.toLowerCase().includes("alquiler");
@@ -222,13 +223,11 @@ export default function BrokerDashboard() {
     }
   };
 
-  // Abrir modal de aprobación Human-in-the-Loop
   const handleOpenApprovalModal = (proposal: ActionProposal) => {
     setSelectedProposal(proposal);
     setApprovalModalOpen(true);
   };
 
-  // Descartar propuesta
   const handleRejectProposal = (proposalId: string) => {
     setMessages(prev => prev.map(msg => {
       if (!msg.proposals) return msg;
@@ -239,7 +238,6 @@ export default function BrokerDashboard() {
     }));
   };
 
-  // Confirmar aprobación humana y ejecutar canal seleccionado
   const handleConfirmApproval = async (channel: "whatsapp" | "email" | "pdf") => {
     if (!selectedProposal) return;
     setIsApproving(true);
@@ -247,7 +245,6 @@ export default function BrokerDashboard() {
     try {
       const fileName = selectedProposal.fileName || `${selectedProposal.title.replace(/\s+/g, "_")}.pdf`;
 
-      // Simulación de aprobación de borrador seguro
       setVaultDocs(prev => [
         {
           id: `doc-${Date.now()}`,
@@ -273,7 +270,6 @@ export default function BrokerDashboard() {
         };
       }));
 
-      // Si es descarga de PDF, generar archivo local
       if (channel === "pdf") {
         const blob = new Blob([selectedProposal.rawContent || selectedProposal.description], { type: "text/plain;charset=utf-8" });
         const url = URL.createObjectURL(blob);
@@ -306,18 +302,15 @@ export default function BrokerDashboard() {
     URL.revokeObjectURL(url);
   };
 
-  // Acciones rápidas desde tarjetas de dashboard
   const handleDashboardQuickAction = (target: "properties" | "cma" | "content" | "leads") => {
     setActiveTab(target);
   };
 
-  // Ejecutar prompt desde lead prioritario o caso hacia el Director BROKER
   const handleTriggerBroker = (promptText: string) => {
     setActiveTab("chat");
     handleSendMessage(promptText);
   };
 
-  // Manejar acción desde catálogo de propiedades
   const handlePropertyAction = (actionType: "chat" | "cma" | "content", property: PropertyItem) => {
     if (actionType === "cma") {
       setActiveTab("cma");
@@ -330,193 +323,298 @@ export default function BrokerDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
-      {/* SIDEBAR DE NAVEGACIÓN (Marca Blanca y Accesos) */}
-      <aside className="w-64 border-r border-slate-800 bg-slate-900/60 flex flex-col justify-between shrink-0 hidden md:flex">
-        <div>
-          {/* Cabecera con Marca Blanca */}
-          <div className="p-4 border-b border-slate-800 flex items-center gap-3">
-            <div 
-              className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-white shadow-lg shrink-0"
-              style={{ backgroundColor: brandConfig.primaryColor }}
-            >
-              {brandConfig.agencyName.slice(0, 2).toUpperCase()}
+    <div className="flex h-screen bg-[#f8fafc] text-slate-800 font-sans overflow-hidden">
+      {/* SIDEBAR BLANCA IDÉNTICA A LA DEMO inmobia360.com */}
+      <aside className="w-64 border-r border-slate-200 bg-white flex flex-col justify-between shrink-0 shadow-xs">
+        <div className="flex flex-col h-full overflow-y-auto">
+          {/* Cabecera con Logotipo Inmobia 360 */}
+          <div className="p-5 border-b border-slate-100 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center shadow-xs shrink-0 overflow-hidden p-1.5">
+              <div className="w-full h-full rounded-full border-2 border-emerald-400 flex items-center justify-center text-white font-bold text-xs">
+                360°
+              </div>
             </div>
             <div className="overflow-hidden">
-              <h1 className="font-semibold text-sm text-white tracking-wide truncate">
+              <h1 className="font-extrabold text-base text-slate-900 tracking-tight">
                 {brandConfig.agencyName}
               </h1>
-              <p className="text-[11px] text-slate-400 truncate">
-                {brandConfig.brandSlogan}
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                TECNOLOGÍA INMOBILIARIA 360°
               </p>
             </div>
           </div>
 
-          {/* Menú de Navegación */}
-          <nav className="p-3 space-y-1 text-xs">
-            <button 
-              onClick={() => setActiveTab("dashboard")}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
-                activeTab === "dashboard" ? "bg-blue-600 text-white font-medium shadow-sm" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              Panel General
-            </button>
-
-            <button 
+          {/* Botón "+ Nueva Propiedad" Naranja */}
+          <div className="p-4">
+            <button
               onClick={() => setActiveTab("properties")}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all ${
-                activeTab === "properties" ? "bg-blue-600 text-white font-medium shadow-sm" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-              }`}
+              className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm shadow-orange-500/20 transition-all"
             >
-              <div className="flex items-center gap-2.5">
-                <Building2 className="w-4 h-4" />
-                Propiedades & Mapa
-              </div>
-              <span className="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full text-slate-300">
-                {DEMO_PROPERTIES.length}
-              </span>
+              <Plus className="w-4 h-4" />
+              Nueva Propiedad
             </button>
-
-            <button 
-              onClick={() => setActiveTab("leads")}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all ${
-                activeTab === "leads" ? "bg-blue-600 text-white font-medium shadow-sm" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Users className="w-4 h-4" />
-                Contactos & Leads
-              </div>
-              <span className="text-[10px] bg-amber-500/20 text-amber-300 font-semibold px-1.5 py-0.5 rounded-full">
-                4 nuevos
-              </span>
-            </button>
-
-            <button 
-              onClick={() => setActiveTab("pipeline")}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
-                activeTab === "pipeline" ? "bg-blue-600 text-white font-medium shadow-sm" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-              }`}
-            >
-              <FolderKanban className="w-4 h-4" />
-              Pipeline (7 Fases)
-            </button>
-
-            <button 
-              onClick={() => setActiveTab("cma")}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
-                activeTab === "cma" ? "bg-blue-600 text-white font-medium shadow-sm" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-              }`}
-            >
-              <Calculator className="w-4 h-4 text-amber-400" />
-              Tasador ACM
-            </button>
-
-            <button 
-              onClick={() => setActiveTab("content")}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
-                activeTab === "content" ? "bg-blue-600 text-white font-medium shadow-sm" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-              }`}
-            >
-              <Sparkles className="w-4 h-4 text-purple-400" />
-              Redactor Copys IA
-            </button>
-
-            <button 
-              onClick={() => setActiveTab("legal")}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
-                activeTab === "legal" ? "bg-blue-600 text-white font-medium shadow-sm" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-              }`}
-            >
-              <KeyRound className="w-4 h-4 text-emerald-400" />
-              LPH & Postventa Física
-            </button>
-
-            <div className="pt-2 border-t border-slate-800/60 my-2"></div>
-
-            <button 
-              onClick={() => setActiveTab("chat")}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
-                activeTab === "chat" ? "bg-blue-600 text-white font-medium shadow-sm" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-              }`}
-            >
-              <MessageSquare className="w-4 h-4" />
-              Consola Director BROKER
-            </button>
-
-            <button 
-              onClick={() => setActiveTab("docs")}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all ${
-                activeTab === "docs" ? "bg-blue-600 text-white font-medium shadow-sm" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <FileText className="w-4 h-4" />
-                Bóveda Documental
-              </div>
-              <span className="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded-full text-slate-300">
-                {vaultDocs.length}
-              </span>
-            </button>
-
-            <button 
-              onClick={() => setActiveTab("settings")}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all ${
-                activeTab === "settings" ? "bg-blue-600 text-white font-medium shadow-sm" : "text-slate-400 hover:text-white hover:bg-slate-800/60"
-              }`}
-            >
-              <Palette className="w-4 h-4 text-blue-400" />
-              Marca Blanca & Equipo
-            </button>
-          </nav>
-        </div>
-
-        {/* Footer Sidebar con aislamiento RLS y plazas */}
-        <div className="p-3 border-t border-slate-800 bg-slate-900/40 text-[11px] space-y-1.5">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              Aislamiento RLS
-            </span>
-            <span className="text-emerald-400 font-mono text-[10px]">Activo</span>
           </div>
-          <div className="text-slate-500 font-mono text-[10px] truncate">
-            tenant: {brandConfig.tenantId} · {brandConfig.team.filter(m => m.active).length}/5 plazas
+
+          {/* Menú de Navegación Estructurado */}
+          <nav className="px-3 space-y-5 text-xs flex-1">
+            {/* GRUPO 1: GESTIÓN COMERCIAL */}
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 mb-1.5">
+                GESTIÓN COMERCIAL
+              </div>
+              <div className="space-y-0.5">
+                <button 
+                  onClick={() => setActiveTab("dashboard")}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-medium ${
+                    activeTab === "dashboard" 
+                      ? "bg-slate-100 text-slate-900 font-bold" 
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  <LayoutGrid className="w-4 h-4 text-slate-600" />
+                  Panel General
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab("properties")}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all font-medium ${
+                    activeTab === "properties" 
+                      ? "bg-slate-100 text-slate-900 font-bold" 
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Building2 className="w-4 h-4 text-slate-600" />
+                    Propiedades & Mapa
+                  </div>
+                  <span className="text-[11px] bg-slate-100 text-slate-600 font-semibold px-2 py-0.5 rounded-full">
+                    5 activas
+                  </span>
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab("leads")}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all font-medium ${
+                    activeTab === "leads" 
+                      ? "bg-slate-100 text-slate-900 font-bold" 
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Users className="w-4 h-4 text-slate-600" />
+                    Contactos & Visitas
+                  </div>
+                  <span className="text-[11px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full">
+                    2 nuevos
+                  </span>
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab("pipeline")}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all font-medium ${
+                    activeTab === "pipeline" 
+                      ? "bg-slate-100 text-slate-900 font-bold" 
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <FolderKanban className="w-4 h-4 text-slate-600" />
+                    Pipeline (7 Fases)
+                  </div>
+                  <span className="text-[10px] bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full">
+                    Kanban
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* GRUPO 2: INTELIGENCIA ARTIFICIAL & SERVICIOS */}
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 mb-1.5">
+                INTELIGENCIA ARTIFICIAL
+              </div>
+              <div className="space-y-0.5">
+                <button 
+                  onClick={() => setActiveTab("content")}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all font-medium ${
+                    activeTab === "content" 
+                      ? "bg-slate-100 text-slate-900 font-bold" 
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    Redactor de Anuncios
+                  </div>
+                  <span className="text-[10px] bg-orange-100 text-orange-700 font-semibold px-2 py-0.5 rounded-full">
+                    Idealista & Redes
+                  </span>
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab("cma")}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all font-medium ${
+                    activeTab === "cma" 
+                      ? "bg-slate-100 text-slate-900 font-bold" 
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Calculator className="w-4 h-4 text-blue-600" />
+                    Tasador ACM
+                  </div>
+                  <span className="text-[10px] bg-amber-100 text-amber-700 font-semibold px-2 py-0.5 rounded-full">
+                    3D & Catastro
+                  </span>
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab("legal")}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all font-medium ${
+                    activeTab === "legal" 
+                      ? "bg-slate-100 text-slate-900 font-bold" 
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <KeyRound className="w-4 h-4 text-emerald-600" />
+                    LPH & Postventa
+                  </div>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-700 font-semibold px-2 py-0.5 rounded-full">
+                    Llaves / CUPS
+                  </span>
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab("chat")}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all font-medium ${
+                    activeTab === "chat" 
+                      ? "bg-slate-100 text-slate-900 font-bold" 
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <MessageSquare className="w-4 h-4 text-purple-600" />
+                    Director BROKER
+                  </div>
+                  <span className="text-[10px] bg-purple-100 text-purple-700 font-semibold px-2 py-0.5 rounded-full">
+                    Asistente
+                  </span>
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab("docs")}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all font-medium ${
+                    activeTab === "docs" 
+                      ? "bg-slate-100 text-slate-900 font-bold" 
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-4 h-4 text-slate-600" />
+                    Bóveda Documental
+                  </div>
+                  <span className="text-[10px] bg-slate-100 text-slate-600 font-semibold px-2 py-0.5 rounded-full">
+                    {vaultDocs.length}
+                  </span>
+                </button>
+
+                <button 
+                  onClick={() => setActiveTab("settings")}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-medium ${
+                    activeTab === "settings" 
+                      ? "bg-slate-100 text-slate-900 font-bold" 
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  <Settings className="w-4 h-4 text-slate-600" />
+                  Configuración & Marca
+                </button>
+              </div>
+            </div>
+          </nav>
+
+          {/* Footer Sidebar idéntico a demo */}
+          <div className="p-4 border-t border-slate-100 bg-slate-50/50 space-y-3">
+            <div className="flex items-center justify-between text-xs text-slate-500">
+              <div className="flex items-center bg-white border border-slate-200 rounded-lg p-0.5 text-[11px] font-bold">
+                <span className="px-2 py-0.5 bg-blue-600 text-white rounded-md">ES</span>
+                <span className="px-2 py-0.5 text-slate-500">EN</span>
+              </div>
+              <button className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-white transition-colors">
+                <Moon className="w-4 h-4" />
+              </button>
+            </div>
+
+            <a 
+              href="https://inmobia360.com/"
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs text-slate-600 hover:text-slate-900 font-medium flex items-center justify-between"
+            >
+              <span>Ver Landing Pública</span>
+              <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
+            </a>
+
+            <div className="pt-2 border-t border-slate-200/80 flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
+                EC
+              </div>
+              <div className="overflow-hidden">
+                <div className="text-xs font-bold text-slate-900 truncate">
+                  Equipo Comercial Inmobiliario
+                </div>
+                <div className="text-[10px] text-slate-400 truncate">
+                  Habita B2B Real Estate Tech
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </aside>
 
-      {/* ÁREA PRINCIPAL DE TRABAJO */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Header Superior con Monitor de Salud */}
-        <header className="h-14 border-b border-slate-800 bg-slate-900/40 flex items-center justify-between px-6 shrink-0">
-          <div className="flex items-center gap-3">
-            <span className="text-xs px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
-              Plataforma SaaS en Producción
-            </span>
-            <span className="text-xs text-slate-500 hidden sm:inline">|</span>
-            <span className="text-xs text-slate-400 hidden sm:inline">
-              {brandConfig.agencyName} ({brandConfig.fiscalId})
-            </span>
+      {/* ÁREA PRINCIPAL */}
+      <main className="flex-1 flex flex-col overflow-hidden bg-[#f8fafc]">
+        {/* Cabecera Superior Blanca con Título y Estado */}
+        <header className="h-18 border-b border-slate-200/80 bg-white flex items-center justify-between px-8 shrink-0">
+          <div>
+            <h1 className="text-xl font-bold text-slate-900 leading-tight">
+              Bienvenido, Equipo Comercial Inmobiliario
+            </h1>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Panel de control y rendimiento de Habita B2B Real Estate Tech
+            </p>
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Monitor de Salud del Motor Cognitivo */}
-            <div className="flex items-center gap-2 px-3 py-1 rounded-lg border border-slate-800 bg-slate-900/80 text-xs">
-              <span className={`w-2 h-2 rounded-full ${health?.ok ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`}></span>
-              <span className="text-slate-300 font-medium">
+            <span className="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-600 font-semibold border border-slate-200">
+              Demo Data
+            </span>
+            <button className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+              <Moon className="w-4 h-4" />
+            </button>
+            <div className="flex items-center bg-slate-100 rounded-lg p-0.5 text-xs font-bold text-slate-600">
+              <span className="px-2 py-0.5 bg-white text-slate-900 rounded-md shadow-xs">ES</span>
+              <span className="px-2 py-0.5 text-slate-400">EN</span>
+            </div>
+            <button className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors relative">
+              <Bell className="w-4 h-4" />
+              <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-1.5 right-1.5"></span>
+            </button>
+
+            {/* Monitor de Salud Cognitivo */}
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full border border-slate-200 bg-slate-50 text-xs">
+              <span className={`w-2 h-2 rounded-full ${health?.ok ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`}></span>
+              <span className="text-slate-700 font-medium">
                 {health?.provider ? health.provider.replace("Hostinger Ollama", "Ollama Hostinger") : "Conectando..."}
               </span>
               {health?.latencyMs ? (
-                <span className="text-[10px] text-slate-500 font-mono">({health.latencyMs} ms)</span>
+                <span className="text-[10px] text-slate-400 font-mono">({health.latencyMs} ms)</span>
               ) : null}
               <button
                 onClick={fetchHealth}
                 disabled={isCheckingHealth}
-                className="ml-1 text-slate-400 hover:text-white transition-colors"
+                className="text-slate-400 hover:text-slate-700 transition-colors"
                 title="Actualizar estado del motor"
               >
                 <RefreshCw className={`w-3 h-3 ${isCheckingHealth ? "animate-spin" : ""}`} />
@@ -525,39 +623,60 @@ export default function BrokerDashboard() {
           </div>
         </header>
 
-        {/* CONTENIDO PRINCIPAL SEGÚN PESTAÑA ACTIVA */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {/* 1. PANEL GENERAL (DASHBOARD OPERATIVO) */}
+        {/* CONTENIDO SEGÚN PESTAÑA ACTIVA */}
+        <div className="flex-1 overflow-y-auto p-8">
+          {/* 1. PANEL GENERAL (DASHBOARD) - IDÉNTICO A inmobia360.com/app/dashboard/ */}
           {activeTab === "dashboard" && (
-            <div className="space-y-6 max-w-7xl mx-auto">
+            <div className="space-y-8 max-w-7xl mx-auto">
               <MetricCards onQuickAction={handleDashboardQuickAction} />
+              
               <PriorityLeadsWidget 
                 onTriggerBrokerAction={handleTriggerBroker}
                 onOpenAllLeads={() => setActiveTab("leads")}
               />
-              <div className="pt-2">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-semibold text-white">Cartera Reciente Destacada</h3>
+
+              {/* Bloque: Propiedades Recientes en Cartera */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-base font-bold text-slate-900">
+                    Propiedades Recientes en Cartera
+                  </h2>
                   <button 
                     onClick={() => setActiveTab("properties")}
-                    className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1"
+                    className="text-xs text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 transition-colors"
                   >
                     Ver todas las propiedades ({DEMO_PROPERTIES.length})
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    <ArrowUpRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {DEMO_PROPERTIES.slice(0, 3).map(p => (
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {DEMO_PROPERTIES.slice(0, 3).map(property => (
                     <div 
-                      key={p.id}
+                      key={property.id}
                       onClick={() => setActiveTab("properties")}
-                      className="p-4 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 transition-all cursor-pointer space-y-2"
+                      className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden hover:shadow-md transition-all cursor-pointer group shadow-xs"
                     >
-                      <img src={p.imageUrl} alt="" className="w-full h-32 rounded-lg object-cover" />
-                      <div className="font-semibold text-xs text-white line-clamp-1">{p.title}</div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-emerald-400 font-bold">{p.formattedPrice}</span>
-                        <span className="text-slate-400">{p.m2} m²</span>
+                      <div className="h-44 w-full bg-slate-100 overflow-hidden relative">
+                        <img 
+                          src={property.imageUrl} 
+                          alt={property.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <span className="absolute bottom-3 left-3 text-base font-extrabold text-white bg-slate-900/80 backdrop-blur-md px-2.5 py-1 rounded-lg">
+                          {property.formattedPrice}
+                        </span>
+                      </div>
+                      <div className="p-4 space-y-1.5">
+                        <div className="text-[11px] text-blue-600 font-semibold truncate">
+                          {property.location}
+                        </div>
+                        <h3 className="text-sm font-bold text-slate-900 truncate">
+                          {property.title}
+                        </h3>
+                        <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                          {property.description}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -608,35 +727,34 @@ export default function BrokerDashboard() {
             </div>
           )}
 
-          {/* 8. CONSOLA DIRECTOR BROKER (CHAT CON HUMAN-IN-THE-LOOP) */}
+          {/* 8. CONSOLA DIRECTOR BROKER */}
           {activeTab === "chat" && (
-            <div className="flex-1 flex flex-col h-[calc(100vh-8rem)] max-w-5xl mx-auto">
-              {/* Botones de Consulta Rápida */}
+            <div className="flex-1 flex flex-col h-[calc(100vh-10rem)] max-w-5xl mx-auto">
               <div className="flex gap-2 mb-4 overflow-x-auto pb-1 shrink-0">
                 <button 
                   onClick={() => handleSendMessage("Redactar un contrato de arras penitenciales según el artículo 1454 del Código Civil español para el piso de Alcalá por 420.000 € y 42.000 € de señal")}
-                  className="text-xs bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                  className="text-xs bg-white border border-slate-200 hover:border-slate-300 text-slate-700 px-3.5 py-2 rounded-xl transition-colors flex items-center gap-1.5 whitespace-nowrap shadow-xs font-medium"
                 >
-                  <Sparkles className="w-3 h-3 text-amber-400" />
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                   Arras Penitenciales (Art. 1454 C.C.)
                 </button>
                 <button 
                   onClick={() => handleSendMessage("Preparar requerimiento formal de certificado de deuda cero al Administrador de Fincas según el Art. 9.1.e LPH")}
-                  className="text-xs bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                  className="text-xs bg-white border border-slate-200 hover:border-slate-300 text-slate-700 px-3.5 py-2 rounded-xl transition-colors flex items-center gap-1.5 whitespace-nowrap shadow-xs font-medium"
                 >
-                  <Building2 className="w-3 h-3 text-blue-400" />
+                  <Building2 className="w-3.5 h-3.5 text-blue-600" />
                   Certificado LPH Art. 9.1.e
                 </button>
                 <button 
                   onClick={() => handleSendMessage("Generar acta de entrega de llaves y lectura de contadores con código CUPS para posesión notarial")}
-                  className="text-xs bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 whitespace-nowrap"
+                  className="text-xs bg-white border border-slate-200 hover:border-slate-300 text-slate-700 px-3.5 py-2 rounded-xl transition-colors flex items-center gap-1.5 whitespace-nowrap shadow-xs font-medium"
                 >
-                  <KeyRound className="w-3 h-3 text-emerald-400" />
+                  <KeyRound className="w-3.5 h-3.5 text-emerald-600" />
                   Acta de Llaves y CUPS
                 </button>
               </div>
 
-              {/* Historial de Mensajes */}
+              {/* Mensajes */}
               <div className="flex-1 overflow-y-auto space-y-4 pr-2">
                 {messages.map((m) => (
                   <div 
@@ -644,31 +762,31 @@ export default function BrokerDashboard() {
                     className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}
                   >
                     <div 
-                      className={`max-w-2xl px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                      className={`max-w-2xl px-5 py-3.5 rounded-2xl text-sm leading-relaxed ${
                         m.sender === "user" 
-                          ? "bg-blue-600 text-white rounded-br-none" 
-                          : "bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none shadow-md"
+                          ? "bg-blue-600 text-white rounded-br-none shadow-xs" 
+                          : "bg-white border border-slate-200 text-slate-800 rounded-bl-none shadow-xs"
                       }`}
                     >
                       <p className="whitespace-pre-wrap">{m.text}</p>
-                      <div className="flex items-center justify-between mt-1.5 text-[10px] text-slate-400">
+                      <div className="flex items-center justify-between mt-2 text-[10px] text-slate-400">
                         <span>{m.provider ? `Motor: ${m.provider}` : ""}</span>
                         <span>{m.timestamp}</span>
                       </div>
                     </div>
 
-                    {/* Tarjetas de Propuesta de Acción (Human-in-the-Loop) */}
+                    {/* Tarjetas de Propuesta de Acción Human-in-the-Loop */}
                     {m.proposals && m.proposals.length > 0 && (
                       <div className="mt-2 space-y-2 w-full max-w-2xl">
                         {m.proposals.map(prop => (
-                          <div key={prop.id} className="p-4 bg-slate-900/95 border border-amber-500/40 rounded-xl flex items-center justify-between gap-4 shadow-lg shadow-black/40">
+                          <div key={prop.id} className="p-4 bg-amber-50/80 border border-amber-200 rounded-2xl flex items-center justify-between gap-4 shadow-xs">
                             <div className="flex items-start gap-3">
-                              <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                               <div>
-                                <div className="text-xs font-semibold text-amber-300">{prop.title}</div>
-                                <div className="text-xs text-slate-400 mt-0.5">{prop.description}</div>
-                                <div className="mt-1 text-[10px] text-amber-400/80 font-mono">
-                                  Modo Borrador Seguro: Requiere aprobación antes de emitir
+                                <div className="text-xs font-bold text-amber-900">{prop.title}</div>
+                                <div className="text-xs text-amber-800/80 mt-0.5">{prop.description}</div>
+                                <div className="mt-1 text-[10px] text-amber-700 font-medium">
+                                  Modo Borrador Seguro: Requiere autorización humana
                                 </div>
                               </div>
                             </div>
@@ -677,28 +795,28 @@ export default function BrokerDashboard() {
                                 <>
                                   <button 
                                     onClick={() => handleOpenApprovalModal(prop)}
-                                    className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors shadow-sm"
+                                    className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
                                   >
                                     <CheckCircle2 className="w-3.5 h-3.5" />
                                     Aprobar y Enviar
                                   </button>
                                   <button 
                                     onClick={() => handleRejectProposal(prop.id)}
-                                    className="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-lg text-xs transition-colors"
+                                    className="px-2.5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs transition-colors"
                                   >
                                     <XCircle className="w-3.5 h-3.5" />
                                   </button>
                                 </>
                               ) : prop.status === "approved" ? (
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-emerald-500/20 text-emerald-400 flex items-center gap-1">
-                                    <CheckCircle2 className="w-3 h-3" />
+                                  <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-emerald-100 text-emerald-700 flex items-center gap-1">
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
                                     Autorizado
                                   </span>
                                   {prop.fileName && (
                                     <button 
                                       onClick={() => handleDownloadDoc(prop.fileName!, prop.rawContent)}
-                                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors shadow-sm"
+                                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
                                     >
                                       <Download className="w-3.5 h-3.5" />
                                       Descargar PDF
@@ -706,7 +824,7 @@ export default function BrokerDashboard() {
                                   )}
                                 </div>
                               ) : (
-                                <span className="text-xs px-2.5 py-1 rounded-full font-medium bg-rose-500/20 text-rose-400">
+                                <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-rose-100 text-rose-700">
                                   Descartado
                                 </span>
                               )}
@@ -719,27 +837,27 @@ export default function BrokerDashboard() {
                 ))}
 
                 {isLoading && (
-                  <div className="flex items-center gap-3 text-xs text-blue-300 bg-blue-950/40 p-3.5 rounded-xl max-w-md border border-blue-500/30 animate-pulse shadow-md">
-                    <Loader2 className="w-4 h-4 animate-spin text-blue-400 shrink-0" />
+                  <div className="flex items-center gap-3 text-xs text-blue-700 bg-blue-50 p-3.5 rounded-2xl max-w-md border border-blue-200 animate-pulse shadow-xs">
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-600 shrink-0" />
                     <span>{thinkingStep || "Director BROKER analizando..."}</span>
                   </div>
                 )}
               </div>
 
-              {/* Barra de Entrada de Texto */}
-              <div className="mt-4 flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl p-2 focus-within:border-blue-500/50 transition-colors shadow-inner shrink-0">
+              {/* Input */}
+              <div className="mt-4 flex items-center gap-2 bg-white border border-slate-200 rounded-2xl p-2.5 shadow-sm shrink-0">
                 <input
                   type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                   placeholder="Formula una consulta legal, pide redactar contratos o auditar contingencias al Director BROKER..."
-                  className="flex-1 bg-transparent px-3 text-sm text-slate-100 placeholder-slate-500 outline-none"
+                  className="flex-1 bg-transparent px-3 text-sm text-slate-800 placeholder-slate-400 outline-none"
                 />
                 <button
                   onClick={() => handleSendMessage()}
                   disabled={isLoading || !inputMessage.trim()}
-                  className="p-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white transition-colors"
+                  className="p-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white transition-colors"
                 >
                   <Send className="w-4 h-4" />
                 </button>
@@ -750,31 +868,29 @@ export default function BrokerDashboard() {
           {/* 9. BÓVEDA DOCUMENTAL */}
           {activeTab === "docs" && (
             <div className="max-w-7xl mx-auto space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-white">Bóveda Documental Segura</h2>
-                  <p className="text-xs text-slate-400">Documentos oficiales generados, autorizados por el agente y custodiados</p>
-                </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">Bóveda Documental Segura</h2>
+                <p className="text-xs text-slate-500">Documentos oficiales generados, autorizados por el agente y custodiados con cifrado</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {vaultDocs.map(doc => (
-                  <div key={doc.id} className="p-4 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between hover:border-slate-700 transition-colors">
+                  <div key={doc.id} className="p-4 bg-white border border-slate-200 rounded-2xl flex items-center justify-between hover:shadow-md transition-all shadow-xs">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                      <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
                         <FileText className="w-5 h-5" />
                       </div>
                       <div>
-                        <div className="text-xs font-medium text-slate-200">{doc.name}</div>
-                        <div className="text-[10px] text-slate-400">
-                          {doc.size} · {doc.date} · <span className="text-emerald-400 font-medium">{doc.status}</span>
+                        <div className="text-xs font-bold text-slate-900">{doc.name}</div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">
+                          {doc.size} · {doc.date} · <span className="text-emerald-600 font-semibold">{doc.status}</span>
                         </div>
-                        <div className="text-[10px] text-slate-500 mt-0.5">Canal: {doc.channel}</div>
+                        <div className="text-[10px] text-slate-400 mt-0.5">Canal: {doc.channel}</div>
                       </div>
                     </div>
                     <button 
                       onClick={() => handleDownloadDoc(doc.name)}
-                      className="p-2 hover:bg-slate-800 text-slate-400 hover:text-blue-400 rounded-lg transition-colors"
+                      className="p-2 hover:bg-slate-100 text-slate-400 hover:text-blue-600 rounded-xl transition-colors"
                       title="Descargar documento legal"
                     >
                       <Download className="w-4 h-4" />
@@ -783,15 +899,15 @@ export default function BrokerDashboard() {
                 ))}
               </div>
 
-              <div className="border-2 border-dashed border-slate-800 rounded-2xl p-8 text-center space-y-2 bg-slate-900/30">
-                <FileText className="w-10 h-10 text-slate-500 mx-auto" />
-                <div className="text-sm text-slate-300 font-medium">Bóveda con aislamiento estricto RLS ({brandConfig.tenantId})</div>
-                <div className="text-xs text-slate-500">Los documentos originales están custodiados con cifrado en reposo</div>
+              <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center space-y-2 bg-white/60">
+                <FileCheck className="w-10 h-10 text-slate-400 mx-auto" />
+                <div className="text-sm text-slate-700 font-bold">Bóveda con aislamiento estricto RLS ({brandConfig.tenantId})</div>
+                <div className="text-xs text-slate-400">Los documentos originales están custodiados con cifrado en reposo</div>
               </div>
             </div>
           )}
 
-          {/* 10. MARCA BLANCA & EQUIPO */}
+          {/* 10. CONFIGURACIÓN & MARCA BLANCA */}
           {activeTab === "settings" && (
             <div className="max-w-7xl mx-auto">
               <WhiteLabelSettings 
@@ -803,7 +919,7 @@ export default function BrokerDashboard() {
         </div>
       </main>
 
-      {/* MODAL DE APROBACIÓN HUMAN-IN-THE-LOOP */}
+      {/* MODAL HUMAN-IN-THE-LOOP */}
       {selectedProposal && (
         <DraftApprovalModal
           isOpen={approvalModalOpen}

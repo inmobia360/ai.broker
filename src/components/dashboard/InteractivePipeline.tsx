@@ -4,11 +4,8 @@ import React, { useState } from "react";
 import { 
   FolderKanban, 
   Sparkles, 
-  ChevronRight, 
   ArrowRight, 
-  CheckCircle2, 
   Clock, 
-  ShieldAlert, 
   Building2,
   FileText
 } from "lucide-react";
@@ -99,13 +96,13 @@ export const INITIAL_PIPELINE_CASES: PipelineCase[] = [
 ];
 
 export const PIPELINE_STAGES: Array<{ id: PipelineStage; name: string; stepNumber: number; color: string }> = [
-  { id: "captacion", name: "1. Captación", stepNumber: 1, color: "border-blue-500/40 text-blue-400 bg-blue-500/10" },
-  { id: "calificacion", name: "2. Calificación", stepNumber: 2, color: "border-cyan-500/40 text-cyan-400 bg-cyan-500/10" },
-  { id: "comercializacion", name: "3. Comercialización", stepNumber: 3, color: "border-indigo-500/40 text-indigo-400 bg-indigo-500/10" },
-  { id: "negociacion", name: "4. Negociación", stepNumber: 4, color: "border-amber-500/40 text-amber-400 bg-amber-500/10" },
-  { id: "arras", name: "5. Arras C.C.", stepNumber: 5, color: "border-orange-500/40 text-orange-400 bg-orange-500/10" },
-  { id: "tramitacion_notarial", name: "6. Notaría & LPH", stepNumber: 6, color: "border-purple-500/40 text-purple-400 bg-purple-500/10" },
-  { id: "postventa", name: "7. Postventa", stepNumber: 7, color: "border-emerald-500/40 text-emerald-400 bg-emerald-500/10" }
+  { id: "captacion", name: "1. Captación", stepNumber: 1, color: "border-blue-200 text-blue-700 bg-blue-50" },
+  { id: "calificacion", name: "2. Calificación", stepNumber: 2, color: "border-cyan-200 text-cyan-700 bg-cyan-50" },
+  { id: "comercializacion", name: "3. Comercialización", stepNumber: 3, color: "border-indigo-200 text-indigo-700 bg-indigo-50" },
+  { id: "negociacion", name: "4. Negociación", stepNumber: 4, color: "border-amber-200 text-amber-700 bg-amber-50" },
+  { id: "arras", name: "5. Arras C.C.", stepNumber: 5, color: "border-orange-200 text-orange-700 bg-orange-50" },
+  { id: "tramitacion_notarial", name: "6. Notaría & LPH", stepNumber: 6, color: "border-purple-200 text-purple-700 bg-purple-50" },
+  { id: "postventa", name: "7. Postventa", stepNumber: 7, color: "border-emerald-200 text-emerald-700 bg-emerald-50" }
 ];
 
 interface InteractivePipelineProps {
@@ -137,12 +134,12 @@ export const InteractivePipeline: React.FC<InteractivePipelineProps> = ({ onExec
       {/* Cabecera del Pipeline */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-            <FolderKanban className="w-5 h-5 text-blue-400" />
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <FolderKanban className="w-5 h-5 text-blue-600" />
             Pipeline de Ciclo Inmobiliario Completo (7 Fases)
           </h2>
-          <p className="text-xs text-slate-400">
-            Control exhaustivo desde la captación hasta la entrega física de llaves y suministros
+          <p className="text-xs text-slate-500">
+            Control de expedientes desde la captación hasta la entrega física de llaves y suministros
           </p>
         </div>
 
@@ -150,8 +147,8 @@ export const InteractivePipeline: React.FC<InteractivePipelineProps> = ({ onExec
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
           <button
             onClick={() => setActiveStageFilter("todos")}
-            className={`px-3 py-1.5 rounded-xl font-medium transition-colors whitespace-nowrap ${
-              activeStageFilter === "todos" ? "bg-blue-600 text-white" : "bg-slate-900 text-slate-400 hover:text-white"
+            className={`px-3 py-1.5 rounded-xl font-semibold transition-colors whitespace-nowrap ${
+              activeStageFilter === "todos" ? "bg-blue-600 text-white shadow-xs" : "bg-white text-slate-600 border border-slate-200 hover:text-slate-900"
             }`}
           >
             Todas ({cases.length})
@@ -162,8 +159,8 @@ export const InteractivePipeline: React.FC<InteractivePipelineProps> = ({ onExec
               <button
                 key={stage.id}
                 onClick={() => setActiveStageFilter(stage.id)}
-                className={`px-2.5 py-1.5 rounded-xl font-medium transition-colors whitespace-nowrap ${
-                  activeStageFilter === stage.id ? "bg-blue-600 text-white" : "bg-slate-900 text-slate-400 hover:text-white"
+                className={`px-2.5 py-1.5 rounded-xl font-semibold transition-colors whitespace-nowrap ${
+                  activeStageFilter === stage.id ? "bg-blue-600 text-white shadow-xs" : "bg-white text-slate-600 border border-slate-200 hover:text-slate-900"
                 }`}
               >
                 {stage.name} ({count})
@@ -184,15 +181,15 @@ export const InteractivePipeline: React.FC<InteractivePipelineProps> = ({ onExec
           return (
             <div 
               key={stage.id}
-              className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 flex flex-col justify-between min-h-[380px] space-y-3"
+              className="bg-white border border-slate-200 rounded-2xl p-3.5 flex flex-col justify-between min-h-[400px] space-y-3 shadow-xs"
             >
               <div>
                 {/* Cabecera de Columna */}
-                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border ${stage.color}`}>
+                <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                  <span className={`text-[11px] font-bold px-2 py-0.5 rounded-lg border ${stage.color}`}>
                     {stage.name}
                   </span>
-                  <span className="text-xs text-slate-400 font-mono font-medium">
+                  <span className="text-xs text-slate-500 font-bold font-mono">
                     {stageCases.length}
                   </span>
                 </div>
@@ -200,40 +197,40 @@ export const InteractivePipeline: React.FC<InteractivePipelineProps> = ({ onExec
                 {/* Tarjetas de la Etapa */}
                 <div className="mt-3 space-y-2.5">
                   {stageCases.length === 0 ? (
-                    <div className="py-8 text-center text-[11px] text-slate-600">
+                    <div className="py-12 text-center text-xs text-slate-400">
                       Sin expedientes
                     </div>
                   ) : (
                     stageCases.map(c => (
                       <div 
                         key={c.id}
-                        className="p-3 bg-slate-950 border border-slate-800/80 rounded-xl space-y-2 hover:border-slate-700 transition-all shadow-sm"
+                        className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2 hover:shadow-xs transition-all"
                       >
-                        <div className="flex items-center justify-between text-[10px]">
-                          <span className="font-mono text-blue-400 font-medium">{c.id}</span>
-                          <span className="font-bold text-emerald-400">{c.price}</span>
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className="font-mono text-blue-600 font-bold">{c.id}</span>
+                          <span className="font-extrabold text-emerald-600">{c.price}</span>
                         </div>
-                        <h4 className="text-xs font-semibold text-white line-clamp-1">{c.title}</h4>
-                        <div className="text-[11px] text-slate-400 line-clamp-1">{c.clientName}</div>
+                        <h4 className="text-xs font-bold text-slate-900 line-clamp-1">{c.title}</h4>
+                        <div className="text-[11px] text-slate-500 line-clamp-1">{c.clientName}</div>
                         
-                        <div className="p-2 bg-slate-900 rounded-lg text-[10px] text-amber-300/90 border border-slate-800 flex items-start gap-1">
-                          <FileText className="w-3 h-3 text-amber-400 shrink-0 mt-0.5" />
+                        <div className="p-2 bg-white rounded-lg text-[10px] text-slate-700 border border-slate-200/80 flex items-start gap-1 font-medium">
+                          <FileText className="w-3 h-3 text-amber-500 shrink-0 mt-0.5" />
                           <span className="line-clamp-2">{c.pendingDoc}</span>
                         </div>
 
-                        <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-1.5">
+                        <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-1.5">
                           <button
                             onClick={() => onExecuteBrokerCase(c.suggestedAction)}
-                            className="flex-1 py-1 px-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 rounded-lg text-[10px] font-medium flex items-center justify-center gap-1 transition-colors"
+                            className="flex-1 py-1.5 px-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 transition-colors"
                             title="Tramitar acción en Consola BROKER"
                           >
-                            <Sparkles className="w-2.5 h-2.5" />
+                            <Sparkles className="w-2.5 h-2.5 text-amber-500" />
                             Tramitar
                           </button>
                           {stage.stepNumber < 7 && (
                             <button
                               onClick={() => moveCaseToNextStage(c.id)}
-                              className="p-1 text-slate-400 hover:text-white bg-slate-800 rounded-lg transition-colors"
+                              className="p-1.5 text-slate-500 hover:text-slate-800 bg-white border border-slate-200 rounded-lg transition-colors"
                               title="Avanzar a siguiente fase"
                             >
                               <ArrowRight className="w-3 h-3" />
@@ -246,7 +243,7 @@ export const InteractivePipeline: React.FC<InteractivePipelineProps> = ({ onExec
                 </div>
               </div>
 
-              <div className="pt-2 text-[10px] text-slate-500 text-center border-t border-slate-800/60">
+              <div className="pt-2 text-[10px] text-slate-400 font-medium text-center border-t border-slate-100">
                 Paso {stage.stepNumber} de 7
               </div>
             </div>

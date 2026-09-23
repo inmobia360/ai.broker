@@ -6,10 +6,6 @@ import {
   KeyRound, 
   Gauge, 
   FileCheck, 
-  Sparkles, 
-  Download, 
-  AlertTriangle,
-  Send,
   ShieldCheck,
   CheckCircle2
 } from "lucide-react";
@@ -162,21 +158,21 @@ export const LegalPostventaModule: React.FC<LegalPostventaModuleProps> = ({ onRe
       {/* Cabecera */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-            <KeyRound className="w-5 h-5 text-emerald-400" />
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <KeyRound className="w-5 h-5 text-emerald-600" />
             Módulo Jurídico LPH y Postventa Física
           </h2>
-          <p className="text-xs text-slate-400">
-            Formalización de certificados comunitarios Art. 9.1.e LPH, entrega material de llaves y traspaso de suministros
+          <p className="text-xs text-slate-500">
+            Certificados comunitarios Art. 9.1.e LPH, entrega material de llaves y traspaso de suministros
           </p>
         </div>
 
         {/* Pestañas Secundarias */}
-        <div className="flex items-center p-1 bg-slate-900 border border-slate-800 rounded-xl text-xs">
+        <div className="flex items-center p-1 bg-white border border-slate-200 rounded-xl text-xs shadow-xs">
           <button
             onClick={() => setActiveSubTab("lph")}
-            className={`px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1.5 ${
-              activeSubTab === "lph" ? "bg-blue-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
+            className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1.5 ${
+              activeSubTab === "lph" ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
             }`}
           >
             <Building2 className="w-3.5 h-3.5" />
@@ -184,8 +180,8 @@ export const LegalPostventaModule: React.FC<LegalPostventaModuleProps> = ({ onRe
           </button>
           <button
             onClick={() => setActiveSubTab("keys")}
-            className={`px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1.5 ${
-              activeSubTab === "keys" ? "bg-blue-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
+            className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1.5 ${
+              activeSubTab === "keys" ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
             }`}
           >
             <KeyRound className="w-3.5 h-3.5" />
@@ -193,8 +189,8 @@ export const LegalPostventaModule: React.FC<LegalPostventaModuleProps> = ({ onRe
           </button>
           <button
             onClick={() => setActiveSubTab("utilities")}
-            className={`px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1.5 ${
-              activeSubTab === "utilities" ? "bg-blue-600 text-white shadow-sm" : "text-slate-400 hover:text-white"
+            className={`px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1.5 ${
+              activeSubTab === "utilities" ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
             }`}
           >
             <Gauge className="w-3.5 h-3.5" />
@@ -205,120 +201,120 @@ export const LegalPostventaModule: React.FC<LegalPostventaModuleProps> = ({ onRe
 
       {/* SUBTAB 1: COMUNIDAD LPH */}
       {activeSubTab === "lph" && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-xs">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
             <div>
-              <h3 className="text-sm font-semibold text-white">
+              <h3 className="text-sm font-bold text-slate-900">
                 Requerimiento de Certificado de Deuda Cero (Art. 9.1.e LPH)
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Exigible por el Notario con plazo imperativo de emisión de 7 días naturales por la administración
               </p>
             </div>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">
+            <span className="text-xs px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-bold">
               Ley 49/1960 de Propiedad Horizontal
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
             <div className="space-y-3">
-              <h4 className="font-semibold text-slate-300 uppercase tracking-wider text-[11px]">
+              <h4 className="font-bold text-slate-700 uppercase tracking-wider text-[11px]">
                 Datos de la Propiedad y Titular
               </h4>
               <div>
-                <label className="text-slate-400 font-medium">Dirección Inmueble</label>
+                <label className="text-slate-600 font-medium">Dirección Inmueble</label>
                 <input
                   type="text"
                   value={lphAddress}
                   onChange={(e) => setLphAddress(e.target.value)}
-                  className="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500"
+                  className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-blue-500"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-slate-400 font-medium">Cuota Finca Madre (%)</label>
+                  <label className="text-slate-600 font-medium">Cuota Finca Madre (%)</label>
                   <input
                     type="number"
                     step="0.01"
                     value={lphCoefficient}
                     onChange={(e) => setLphCoefficient(Number(e.target.value))}
-                    className="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500"
+                    className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-400 font-medium">Cuota Ordinaria (€/mes)</label>
+                  <label className="text-slate-600 font-medium">Cuota Ordinaria (€/mes)</label>
                   <input
                     type="number"
                     value={lphOrdinaryFee}
                     onChange={(e) => setLphOrdinaryFee(Number(e.target.value))}
-                    className="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500"
+                    className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-slate-400 font-medium">Nombre Propietario</label>
+                  <label className="text-slate-600 font-medium">Nombre Propietario</label>
                   <input
                     type="text"
                     value={lphOwnerName}
                     onChange={(e) => setLphOwnerName(e.target.value)}
-                    className="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500"
+                    className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-400 font-medium">DNI/NIE Propietario</label>
+                  <label className="text-slate-600 font-medium">DNI/NIE Propietario</label>
                   <input
                     type="text"
                     value={lphOwnerDni}
                     onChange={(e) => setLphOwnerDni(e.target.value)}
-                    className="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500"
+                    className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-semibold text-slate-300 uppercase tracking-wider text-[11px]">
+              <h4 className="font-bold text-slate-700 uppercase tracking-wider text-[11px]">
                 Administrador de Fincas Colegiado
               </h4>
               <div>
-                <label className="text-slate-400 font-medium">Nombre del Administrador / Despacho</label>
+                <label className="text-slate-600 font-medium">Nombre del Administrador / Despacho</label>
                 <input
                   type="text"
                   value={lphAdminName}
                   onChange={(e) => setLphAdminName(e.target.value)}
-                  className="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500"
+                  className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-blue-500"
                 />
               </div>
               <div>
-                <label className="text-slate-400 font-medium">Colegiación Oficial</label>
+                <label className="text-slate-600 font-medium">Colegiación Oficial</label>
                 <input
                   type="text"
                   value={lphAdminCollege}
                   onChange={(e) => setLphAdminCollege(e.target.value)}
-                  className="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500"
+                  className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-blue-500"
                 />
               </div>
               <div>
-                <label className="text-slate-400 font-medium">Correo Electrónico de Notificación</label>
+                <label className="text-slate-600 font-medium">Correo Electrónico de Notificación</label>
                 <input
                   type="email"
                   value={lphAdminEmail}
                   onChange={(e) => setLphAdminEmail(e.target.value)}
-                  className="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500"
+                  className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-blue-500"
                 />
               </div>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
-            <div className="text-xs text-slate-400 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+            <div className="text-xs text-slate-500 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <span>Se emitirá en Modo Borrador Seguro para revisión humana previa</span>
             </div>
             <button
               onClick={handleGenerateLPH}
-              className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors shadow-sm"
+              className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-colors shadow-xs"
             >
               <FileCheck className="w-4 h-4" />
               Generar Requerimiento Formal LPH
@@ -329,109 +325,109 @@ export const LegalPostventaModule: React.FC<LegalPostventaModuleProps> = ({ onRe
 
       {/* SUBTAB 2 & 3: ENTREGA DE LLAVES Y LECTURA DE CONTADORES */}
       {(activeSubTab === "keys" || activeSubTab === "utilities") && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-xs">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
             <div>
-              <h3 className="text-sm font-semibold text-white">
+              <h3 className="text-sm font-bold text-slate-900">
                 Acta de Transmisión de Posesión y Lectura de Contadores
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Art. 1462 Código Civil: constancia fehaciente de entrega física y códigos de suministro (CUPS)
               </p>
             </div>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">
+            <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
               Cierre Notarial / Entrega de Posesión
             </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
             {/* Inventario de Llaves */}
-            <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
-              <h4 className="font-semibold text-slate-200 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                <KeyRound className="w-4 h-4 text-emerald-400" />
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+              <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                <KeyRound className="w-4 h-4 text-emerald-600" />
                 Inventario de Llaves y Mandos
               </h4>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-slate-400">Juegos Puerta Blindada</label>
+                  <label className="text-slate-600 font-medium">Juegos Puerta Blindada</label>
                   <input
                     type="number"
                     value={keyMainSets}
                     onChange={(e) => setKeyMainSets(Number(e.target.value))}
-                    className="mt-1 w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white"
+                    className="mt-1 w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-900"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-400">Juegos Portal Edificio</label>
+                  <label className="text-slate-600 font-medium">Juegos Portal Edificio</label>
                   <input
                     type="number"
                     value={keyPortalSets}
                     onChange={(e) => setKeyPortalSets(Number(e.target.value))}
-                    className="mt-1 w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white"
+                    className="mt-1 w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-900"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-400">Llaves Buzón</label>
+                  <label className="text-slate-600 font-medium">Llaves Buzón</label>
                   <input
                     type="number"
                     value={keyMailbox}
                     onChange={(e) => setKeyMailbox(Number(e.target.value))}
-                    className="mt-1 w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white"
+                    className="mt-1 w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-900"
                   />
                 </div>
                 <div>
-                  <label className="text-slate-400">Mandos Garaje / Parking</label>
+                  <label className="text-slate-600 font-medium">Mandos Garaje / Parking</label>
                   <input
                     type="number"
                     value={keyGarageRemotes}
                     onChange={(e) => setKeyGarageRemotes(Number(e.target.value))}
-                    className="mt-1 w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white"
+                    className="mt-1 w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-900"
                   />
                 </div>
               </div>
             </div>
 
             {/* Lectura de Contadores */}
-            <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
-              <h4 className="font-semibold text-slate-200 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                <Gauge className="w-4 h-4 text-blue-400" />
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+              <h4 className="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                <Gauge className="w-4 h-4 text-blue-600" />
                 Lectura Numérica de Contadores
               </h4>
               <div className="space-y-2.5">
                 <div>
-                  <label className="text-slate-400">Electricidad (Código CUPS)</label>
+                  <label className="text-slate-600 font-medium">Electricidad (Código CUPS)</label>
                   <div className="grid grid-cols-3 gap-2 mt-1">
                     <input
                       type="text"
                       value={cupsElectricidad}
                       onChange={(e) => setCupsElectricidad(e.target.value)}
-                      className="col-span-2 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white font-mono text-[11px]"
+                      className="col-span-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-900 font-mono text-[11px]"
                     />
                     <input
                       type="number"
                       value={readingElectricidad}
                       onChange={(e) => setReadingElectricidad(Number(e.target.value))}
                       placeholder="kWh"
-                      className="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-right"
+                      className="bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-slate-900 text-right"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-slate-400">Agua (N.º Contador / m³)</label>
+                  <label className="text-slate-600 font-medium">Agua (N.º Contador / m³)</label>
                   <div className="grid grid-cols-3 gap-2 mt-1">
                     <input
                       type="text"
                       value={meterAgua}
                       onChange={(e) => setMeterAgua(e.target.value)}
-                      className="col-span-2 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white font-mono text-[11px]"
+                      className="col-span-2 bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-900 font-mono text-[11px]"
                     />
                     <input
                       type="number"
                       value={readingAgua}
                       onChange={(e) => setReadingAgua(Number(e.target.value))}
                       placeholder="m³"
-                      className="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-right"
+                      className="bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-slate-900 text-right"
                     />
                   </div>
                 </div>
@@ -439,14 +435,14 @@ export const LegalPostventaModule: React.FC<LegalPostventaModuleProps> = ({ onRe
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
-            <div className="text-xs text-slate-400 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+            <div className="text-xs text-slate-500 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               <span>Incluye minuta de autorización de cambio de titular sin corte de servicio</span>
             </div>
             <button
               onClick={handleGenerateHandover}
-              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors shadow-sm"
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-colors shadow-xs"
             >
               <FileCheck className="w-4 h-4" />
               Generar Acta de Llaves y Traspaso
