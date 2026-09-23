@@ -36,6 +36,7 @@ import { PriorityLeadsWidget, PriorityLead } from "@/components/dashboard/Priori
 import { PropertyCatalog, DEMO_PROPERTIES, PropertyItem } from "@/components/dashboard/PropertyCatalog";
 import { InteractivePipeline, PipelineCase, INITIAL_PIPELINE_CASES } from "@/components/dashboard/InteractivePipeline";
 import { InteractiveCMA } from "@/components/dashboard/InteractiveCMA";
+import type { CmaValuationOutput } from "@/lib/valuation/cmaValuator";
 import { ContentStudioAI } from "@/components/dashboard/ContentStudioAI";
 import { LegalPostventaModule } from "@/components/dashboard/LegalPostventaModule";
 import { WhiteLabelSettings } from "@/components/dashboard/WhiteLabelSettings";
@@ -90,6 +91,7 @@ export default function BrokerDashboard() {
   const [brandConfig, setBrandConfig] = useState<WhiteLabelConfig>(getDefaultWhiteLabelConfig("inmobia360"));
   const [properties, setProperties] = useState<PropertyItem[]>(DEMO_PROPERTIES);
   const [pipelineCases, setPipelineCases] = useState<PipelineCase[]>(INITIAL_PIPELINE_CASES);
+  const [selectedPropertyForCMA, setSelectedPropertyForCMA] = useState<PropertyItem | null>(null);
   const [newPropertyModalOpen, setNewPropertyModalOpen] = useState(false);
   const [isSavingProperty, setIsSavingProperty] = useState(false);
   const [newPropForm, setNewPropForm] = useState({
@@ -640,6 +642,22 @@ export default function BrokerDashboard() {
     setApprovalModalOpen(true);
   };
 
+  const handleGenerateDossierFromCMA = (valuation: CmaValuationOutput) => {
+    const proposal: ActionProposal = {
+      id: `prop-cma-${Date.now()}`,
+      title: `Dossier de Prevaloración ACM — ${valuation.propertyAddress}`,
+      description: `Informe profesional de valoración ACM (${valuation.recommendedListingPrice.toLocaleString("es-ES")} € en portales, ${valuation.estimatedClosingPrice.toLocaleString("es-ES")} € en notaría) con análisis de micro-zona y testigos homologados.`,
+      actionType: "cma_dossier",
+      status: "pending",
+      fileName: `Dossier_ACM_${valuation.propertyAddress.replace(/[^a-zA-Z0-9]/g, "_").slice(0, 30)}.pdf`,
+      rawContent: valuation.dossierReportDraft.content,
+      recipientEmail: "propietario@inmueble.com"
+    };
+
+    setSelectedProposal(proposal);
+    setApprovalModalOpen(true);
+  };
+
   const handleSaveNewProperty = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPropForm.title.trim() || !newPropForm.price) return;
@@ -723,6 +741,7 @@ export default function BrokerDashboard() {
     if (actionType === "share") {
       handleOpenShare(property);
     } else if (actionType === "cma") {
+      setSelectedPropertyForCMA(property);
       setActiveTab("cma");
     } else if (actionType === "content") {
       setActiveTab("content");
@@ -1133,7 +1152,17 @@ export default function BrokerDashboard() {
           {/* 5. TASADOR ACM INTERACTIVO */}
           {activeTab === "cma" && (
             <div className="max-w-7xl mx-auto">
-              <InteractiveCMA onGenerateDossier={handleTriggerBroker} />
+              <InteractiveCMA 
+                key={selectedPropertyForCMA?.id || "default-cma"}
+                initialAddress={selectedPropertyForCMA ? `${selectedPropertyForCMA.address || selectedPropertyForCMA.title}, ${selectedPropertyForCMA.location}` : "Calle Serrano 45, Barrio de Salamanca, Madrid"}
+                initialM2={selectedPropertyForCMA ? selectedPropertyForCMA.m2 : 120}
+                initialPrice={selectedPropertyForCMA ? selectedPropertyForCMA.price : undefined}
+                onGenerateDossier={handleTriggerBroker}
+                onOpenOfficialDossier={handleGenerateDossierFromCMA}
+                agencyName={brandConfig.agencyName}
+                apiNumber={brandConfig.apiNumber}
+                fiscalId={brandConfig.fiscalId}
+              />
             </div>
           )}
 

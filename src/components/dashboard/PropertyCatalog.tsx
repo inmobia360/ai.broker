@@ -383,6 +383,14 @@ export const PropertyCatalog: React.FC<PropertyCatalogProps> = ({
                   <div className="text-[10px] text-slate-400">{Math.round(property.price / property.m2)} €/m²</div>
                 </div>
                 <button
+                  onClick={() => onSelectPropertyAction("cma", property)}
+                  className="px-3 py-2 border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                  title="Realizar Tasación ACM con Testigos Homologados y Catastro 3D"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  Tasar ACM
+                </button>
+                <button
                   onClick={() => onOpenShareModal ? onOpenShareModal(property) : onSelectPropertyAction("share", property)}
                   className="px-3 py-2 border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
                   title="Compartir y Código QR"
