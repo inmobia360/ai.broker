@@ -54,4 +54,41 @@ describe('T7: Memoria Operativa Estructurada y Aprendizaje de Casos Resueltos (R
     const hasLeak = leaked.some(c => c.record.tenantId === tenantB);
     assert.strictEqual(hasLeak, false);
   });
+
+  test('Aprendizaje federado: Comparte conocimientos tácticos 100% anonimizados entre agentes del SaaS', async () => {
+    // Tenant B resuelve una objeción compleja y la comparte anonimizada con el ecosistema
+    const ecoCase = await OperationalMemoryStore.anonymizeAndContributeToEcosystem({
+      originTenantId: tenantB,
+      category: 'negociacion_objeciones',
+      title: 'Vivienda con herencia yacente y 4 herederos enfrentados en Calle Velázquez 12',
+      problemDescription: 'El cliente Juan Pérez con DNI 12345678Z y teléfono +34 600 111 222 bloquea la venta porque un hermano no quiere firmar.',
+      solutionApplied: 'Se negoció la venta de proindiviso mediante mediación notarial acordando la partición con cuaderno particional previo.',
+      namesToRedact: ['Juan Pérez']
+    });
+
+    // Validar que la PII ha sido completamente erradicada
+    assert.ok(!ecoCase.title.includes('Calle Velázquez 12'));
+    assert.ok(ecoCase.title.includes('[UBICACIÓN_ANONIMIZADA]'));
+    assert.ok(!ecoCase.problemDescription.includes('Juan Pérez'));
+    assert.ok(!ecoCase.problemDescription.includes('12345678Z'));
+    assert.ok(!ecoCase.problemDescription.includes('600 111 222'));
+    assert.ok(ecoCase.problemDescription.includes('[DNI_PROTEGIDO]'));
+    assert.ok(ecoCase.problemDescription.includes('[TEL_PROTEGIDO]'));
+    assert.ok(ecoCase.problemDescription.includes('[PARTE_ANONIMIZADA]'));
+
+    // Tenant A consulta por un problema similar de herederos enfrentados
+    const retrieved = await OperationalMemoryStore.retrieveSimilarCases(
+      tenantA,
+      'Cómo gestionar una venta con varios herederos enfrentados que no se ponen de acuerdo',
+      { includeCollectiveKnowledge: true }
+    );
+
+    const collectiveCase = retrieved.find(c => c.isCollectiveKnowledge);
+    assert.ok(collectiveCase, 'El agente de Tenant A debe beneficiarse del conocimiento táctico anonimizado');
+    assert.ok(collectiveCase.record.solutionApplied.includes('mediación notarial'));
+
+    // Formatear contexto y verificar distinción visual entre interno y colectivo
+    const context = OperationalMemoryStore.formatFewShotContext(retrieved);
+    assert.ok(context.includes('Ecosistema Inmobia 360 - Aprendizaje Colectivo Anonimizado'));
+  });
 });

@@ -24,17 +24,52 @@ export interface OperationalCaseRecord {
   resolvedAt: string;
 }
 
+export const ECOSYSTEM_COLLECTIVE_TENANT = 'inmobia360_collective_ecosystem';
+
 export interface RetrievedMemoryCase {
   record: OperationalCaseRecord;
   similarityScore: number;
+  isCollectiveKnowledge?: boolean;
 }
 
 // Almacén en memoria estructurado por tenant (persistencia vectorial)
 const inMemoryExperienceStore: OperationalCaseRecord[] = [];
 
+/**
+ * Sanitizador de Información de Identificación Personal (PII).
+ * Anonimiza correos, teléfonos, DNIs, nombres específicos y direcciones postales.
+ */
+export function sanitizePII(text: string, customNamesToRedact: string[] = []): string {
+  if (!text) return '';
+  let sanitized = text;
+
+  // Redactar nombres y razones sociales específicos
+  for (const name of customNamesToRedact) {
+    if (name && name.trim().length > 2) {
+      const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      sanitized = sanitized.replace(new RegExp(escaped, 'gi'), '[PARTE_ANONIMIZADA]');
+    }
+  }
+
+  // Redactar correos electrónicos
+  sanitized = sanitized.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[EMAIL_PROTEGIDO]');
+
+  // Redactar teléfonos españoles e internacionales
+  sanitized = sanitized.replace(/(\+34\s?)?[6-9]\d{2}[\s.-]?\d{3}[\s.-]?\d{3}/g, '[TEL_PROTEGIDO]');
+
+  // Redactar DNI/NIE/CIF
+  sanitized = sanitized.replace(/\b[0-9XYZxyz][0-9]{7}[A-Za-z]\b/g, '[DNI_PROTEGIDO]');
+  sanitized = sanitized.replace(/\b[ABCDEFGHJNPQRSUVWabcdefghjnpqrsuvw][0-9]{7}[0-9A-Ja-j]\b/g, '[CIF_PROTEGIDO]');
+
+  // Redactar direcciones postales callejeras detalladas
+  sanitized = sanitized.replace(/\b(calle|c\/|avenida|avda|paseo|pza|plaza|camino)\s+[^,.;\n]+/gi, '[UBICACIÓN_ANONIMIZADA]');
+
+  return sanitized;
+}
+
 export class OperationalMemoryStore {
   /**
-   * Registra una resolución o precedente exitoso en la memoria de la agencia
+   * Registra una resolución o precedente exitoso en la memoria privada de la agencia
    */
   static async recordCaseMemory(params: {
     tenantId: string;
@@ -68,7 +103,44 @@ export class OperationalMemoryStore {
   }
 
   /**
-   * Recupera los casos previos más afines para alimentar el contexto del Director BROKER
+   * Anonimiza y comparte un aprendizaje exitoso en el ecosistema colectivo global de Inmobia360.
+   * Elimina cualquier dato personal, DNI, teléfono, dirección o cliente antes de indexar.
+   */
+  static async anonymizeAndContributeToEcosystem(params: {
+    originTenantId: string;
+    category: OperationalMemoryCategory;
+    title: string;
+    problemDescription: string;
+    solutionApplied: string;
+    namesToRedact?: string[];
+    tags?: string[];
+  }): Promise<OperationalCaseRecord> {
+    const sanitizedTitle = sanitizePII(params.title, params.namesToRedact);
+    const sanitizedProblem = sanitizePII(params.problemDescription, params.namesToRedact);
+    const sanitizedSolution = sanitizePII(params.solutionApplied, params.namesToRedact);
+
+    const fullSemanticText = `[CONOCIMIENTO COLECTIVO ANONIMIZADO] [${params.category.toUpperCase()}] ${sanitizedTitle}. Situación: ${sanitizedProblem}. Táctica/Solución probada: ${sanitizedSolution}. Etiquetas: ${(params.tags || []).join(', ')}`;
+    const embedding = await generateEmbedding(fullSemanticText);
+
+    const collectiveRecord: OperationalCaseRecord = {
+      id: `eco-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      tenantId: ECOSYSTEM_COLLECTIVE_TENANT,
+      category: params.category,
+      title: sanitizedTitle,
+      problemDescription: sanitizedProblem,
+      solutionApplied: sanitizedSolution,
+      tags: [...(params.tags || []), 'ecosistema_inmobia360', 'aprendizaje_anonimizado'],
+      embedding,
+      resolvedAt: new Date().toISOString()
+    };
+
+    inMemoryExperienceStore.push(collectiveRecord);
+    return collectiveRecord;
+  }
+
+  /**
+   * Recupera los casos previos más afines para alimentar el contexto del Director BROKER.
+   * Consulta la memoria privada del tenant y opcionalmente el pool colectivo anonimizado.
    */
   static async retrieveSimilarCases(
     tenantId: string,
@@ -77,27 +149,38 @@ export class OperationalMemoryStore {
       category?: OperationalMemoryCategory;
       limit?: number;
       minSimilarity?: number;
+      includeCollectiveKnowledge?: boolean;
     }
   ): Promise<RetrievedMemoryCase[]> {
     const limit = options?.limit ?? 3;
     const minSim = options?.minSimilarity ?? 0.45;
+    const includeCollective = options?.includeCollectiveKnowledge ?? true;
     const queryEmbedding = await generateEmbedding(queryText);
 
-    // Filtrar estrictamente por tenant_id (Aislamiento RLS)
-    const tenantRecords = inMemoryExperienceStore.filter(r => {
-      if (r.tenantId !== tenantId) return false;
+    // 1. Filtrar casos accesibles: privados del tenant y/o conocimiento colectivo anonimizado
+    const allowedRecords = inMemoryExperienceStore.filter(r => {
+      const isMyTenant = r.tenantId === tenantId;
+      const isCollective = includeCollective && r.tenantId === ECOSYSTEM_COLLECTIVE_TENANT;
+      
+      if (!isMyTenant && !isCollective) return false;
       if (options?.category && r.category !== options.category) return false;
       return true;
     });
 
-    const scored = tenantRecords.map(record => ({
+    const scored = allowedRecords.map(record => ({
       record,
-      similarityScore: cosineSimilarity(queryEmbedding, record.embedding)
+      similarityScore: cosineSimilarity(queryEmbedding, record.embedding),
+      isCollectiveKnowledge: record.tenantId === ECOSYSTEM_COLLECTIVE_TENANT
     }));
 
     return scored
       .filter(item => item.similarityScore >= minSim)
-      .sort((a, b) => b.similarityScore - a.similarityScore)
+      .sort((a, b) => {
+        // Priorizar precedentes internos de la agencia sobre el conocimiento colectivo
+        const aPriority = a.isCollectiveKnowledge ? 0 : 0.05;
+        const bPriority = b.isCollectiveKnowledge ? 0 : 0.05;
+        return (b.similarityScore + bPriority) - (a.similarityScore + aPriority);
+      })
       .slice(0, limit);
   }
 
@@ -107,15 +190,19 @@ export class OperationalMemoryStore {
   static formatFewShotContext(cases: RetrievedMemoryCase[]): string {
     if (cases.length === 0) return '';
 
-    let context = '\n--- EXPERIENCIA PREVIA Y CASOS SIMILARES RESUELTOS EN LA AGENCIA ---\n';
+    let context = '\n--- EXPERIENCIA PREVIA Y CASOS SIMILARES RESUELTOS DISPONIBLES ---\n';
     cases.forEach((item, index) => {
-      const { record, similarityScore } = item;
-      context += `\n[Precedente ${index + 1} - Afinidad: ${(similarityScore * 100).toFixed(0)}%]\n`;
+      const { record, similarityScore, isCollectiveKnowledge } = item;
+      const originTag = isCollectiveKnowledge 
+        ? '[Ecosistema Inmobia 360 - Aprendizaje Colectivo Anonimizado]' 
+        : '[Precedente Interno de tu Agencia]';
+
+      context += `\n[Caso ${index + 1} - ${originTag} - Afinidad: ${(similarityScore * 100).toFixed(0)}%]\n`;
       context += `Categoría: ${record.category}\nTítulo: ${record.title}\n`;
-      context += `Caso previo: ${record.problemDescription}\n`;
+      context += `Situación previa: ${record.problemDescription}\n`;
       context += `Solución exitosa demostrada: ${record.solutionApplied}\n`;
     });
-    context += '\nInstrucción: Utiliza estos precedentes probados de la agencia para guiar la respuesta de forma coherente.\n';
+    context += '\nInstrucción: Aplica estos precedentes probados para guiar tu resolución de forma jurídica y comercialmente óptima.\n';
     return context;
   }
 
