@@ -39,6 +39,8 @@ import { InteractiveCMA } from "@/components/dashboard/InteractiveCMA";
 import { ContentStudioAI } from "@/components/dashboard/ContentStudioAI";
 import { LegalPostventaModule } from "@/components/dashboard/LegalPostventaModule";
 import { WhiteLabelSettings } from "@/components/dashboard/WhiteLabelSettings";
+import { BrandLogo } from "@/components/brand/BrandLogo";
+import { ShareModal } from "@/components/ui/ShareModal";
 import { 
   WhiteLabelConfig, 
   getDefaultWhiteLabelConfig 
@@ -98,6 +100,10 @@ export default function BrokerDashboard() {
   const [approvalModalOpen, setApprovalModalOpen] = useState(false);
   const [selectedProposal, setSelectedProposal] = useState<ActionProposal | null>(null);
   const [isApproving, setIsApproving] = useState(false);
+
+  // Modal de Difusión y Compartir con QR Dinámico
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [selectedPropertyToShare, setSelectedPropertyToShare] = useState<PropertyItem | null>(null);
 
   // Monitor de salud en tiempo real
   const [health, setHealth] = useState<HealthInfo | null>(null);
@@ -407,8 +413,15 @@ export default function BrokerDashboard() {
     handleSendMessage(promptText);
   };
 
-  const handlePropertyAction = (actionType: "chat" | "cma" | "content", property: PropertyItem) => {
-    if (actionType === "cma") {
+  const handleOpenShare = (prop: PropertyItem) => {
+    setSelectedPropertyToShare(prop);
+    setShareModalOpen(true);
+  };
+
+  const handlePropertyAction = (actionType: "chat" | "cma" | "content" | "share", property: PropertyItem) => {
+    if (actionType === "share") {
+      handleOpenShare(property);
+    } else if (actionType === "cma") {
       setActiveTab("cma");
     } else if (actionType === "content") {
       setActiveTab("content");
@@ -423,21 +436,9 @@ export default function BrokerDashboard() {
       {/* SIDEBAR BLANCA IDÉNTICA A LA DEMO inmobia360.com */}
       <aside className="w-64 border-r border-slate-200 bg-white flex flex-col justify-between shrink-0 shadow-xs">
         <div className="flex flex-col h-full overflow-y-auto">
-          {/* Cabecera con Logotipo Inmobia 360 */}
+          {/* Cabecera con Logotipo Oficial Inmobia 360 */}
           <div className="p-5 border-b border-slate-100 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center shadow-xs shrink-0 overflow-hidden p-1.5">
-              <div className="w-full h-full rounded-full border-2 border-emerald-400 flex items-center justify-center text-white font-bold text-xs">
-                360°
-              </div>
-            </div>
-            <div className="overflow-hidden">
-              <h1 className="font-extrabold text-base text-slate-900 tracking-tight">
-                {brandConfig.agencyName}
-              </h1>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-                TECNOLOGÍA INMOBILIARIA 360°
-              </p>
-            </div>
+            <BrandLogo size="md" showSubtitle={true} subtitleText="AI BROKER OS" />
           </div>
 
           {/* Botón "+ Nueva Propiedad" Naranja */}
@@ -788,6 +789,7 @@ export default function BrokerDashboard() {
                 properties={properties}
                 onSelectPropertyAction={handlePropertyAction} 
                 onOpenNewPropertyModal={() => setNewPropertyModalOpen(true)}
+                onOpenShareModal={handleOpenShare}
               />
             </div>
           )}
@@ -816,7 +818,10 @@ export default function BrokerDashboard() {
           {/* 6. REDACTOR DE CONTENIDOS IA */}
           {activeTab === "content" && (
             <div className="max-w-7xl mx-auto">
-              <ContentStudioAI onSendToBroker={handleTriggerBroker} />
+              <ContentStudioAI 
+                onSendToBroker={handleTriggerBroker} 
+                propertiesList={properties}
+              />
             </div>
           )}
 
@@ -1178,6 +1183,14 @@ export default function BrokerDashboard() {
           </div>
         </div>
       )}
+
+      {/* Modal de Difusión y Compartir con QR Dinámico */}
+      <ShareModal
+        property={selectedPropertyToShare}
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        agencyName={brandConfig.agencyName}
+      />
     </div>
   );
 }

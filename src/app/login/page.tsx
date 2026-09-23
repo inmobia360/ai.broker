@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ShieldCheck, ArrowRight, Building2, Users, Lock, Mail, Loader2, Sparkles } from "lucide-react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -53,19 +54,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        {/* Logo Circular */}
-        <div className="mx-auto w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center shadow-md p-1.5 mb-3">
-          <div className="w-full h-full rounded-xl border-2 border-emerald-400 flex items-center justify-center text-white font-extrabold text-sm">
-            360°
-          </div>
-        </div>
-        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-          Inmobia 360
-        </h2>
-        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-1">
-          SaaS de Dirección Inmobiliaria con Inteligencia Artificial
-        </p>
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center flex flex-col items-center">
+        <BrandLogo size="lg" showSubtitle={true} subtitleText="SaaS de Dirección Inmobiliaria con IA" />
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">

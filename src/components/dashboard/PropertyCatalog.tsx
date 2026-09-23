@@ -14,7 +14,8 @@ import {
   FileText,
   Search,
   Filter,
-  ArrowUpRight
+  ArrowUpRight,
+  Share2
 } from "lucide-react";
 import { DeepLinkGenerator } from "@/lib/geo/deepLinkGenerator";
 
@@ -126,14 +127,16 @@ export const DEMO_PROPERTIES: PropertyItem[] = [
 
 interface PropertyCatalogProps {
   properties?: PropertyItem[];
-  onSelectPropertyAction: (actionType: "chat" | "cma" | "content", property: PropertyItem) => void;
+  onSelectPropertyAction: (actionType: "chat" | "cma" | "content" | "share", property: PropertyItem) => void;
   onOpenNewPropertyModal?: () => void;
+  onOpenShareModal?: (property: PropertyItem) => void;
 }
 
 export const PropertyCatalog: React.FC<PropertyCatalogProps> = ({ 
   properties = DEMO_PROPERTIES, 
   onSelectPropertyAction,
-  onOpenNewPropertyModal
+  onOpenNewPropertyModal,
+  onOpenShareModal
 }) => {
   const [viewMode, setViewMode] = useState<"grid" | "list" | "map">("grid");
   const [searchTerm, setSearchTerm] = useState("");
@@ -303,18 +306,37 @@ export const PropertyCatalog: React.FC<PropertyCatalogProps> = ({
                   <div className="grid grid-cols-2 gap-2 pt-1">
                     <button
                       onClick={() => onSelectPropertyAction("cma", property)}
-                      className="py-2 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+                      className="py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
                     >
                       <Sparkles className="w-3 h-3 text-amber-500" />
                       Tasar ACM
                     </button>
                     <button
                       onClick={() => onSelectPropertyAction("content", property)}
-                      className="py-2 px-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1 transition-colors shadow-xs"
+                      className="py-1.5 px-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1 transition-colors shadow-xs"
                     >
                       <FileText className="w-3 h-3" />
                       Redactor IA
                     </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => onOpenShareModal ? onOpenShareModal(property) : onSelectPropertyAction("share", property)}
+                      className="py-1.5 px-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors"
+                    >
+                      <Share2 className="w-3 h-3 text-orange-500" />
+                      Compartir / QR
+                    </button>
+                    <a
+                      href={`/property/${property.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="py-1.5 px-2 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-xl text-[11px] font-semibold flex items-center justify-center gap-1 transition-colors"
+                    >
+                      <ExternalLink className="w-3 h-3 text-orange-600" />
+                      Ficha Pública
+                    </a>
                   </div>
                 </div>
               </div>
@@ -360,6 +382,14 @@ export const PropertyCatalog: React.FC<PropertyCatalogProps> = ({
                   <div className="text-base font-extrabold text-emerald-600">{property.formattedPrice}</div>
                   <div className="text-[10px] text-slate-400">{Math.round(property.price / property.m2)} €/m²</div>
                 </div>
+                <button
+                  onClick={() => onOpenShareModal ? onOpenShareModal(property) : onSelectPropertyAction("share", property)}
+                  className="px-3 py-2 border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                  title="Compartir y Código QR"
+                >
+                  <Share2 className="w-3.5 h-3.5 text-orange-500" />
+                  Compartir
+                </button>
                 <button
                   onClick={() => onSelectPropertyAction("chat", property)}
                   className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
