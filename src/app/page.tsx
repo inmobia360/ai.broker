@@ -41,6 +41,8 @@ import { ContentStudioAI } from "@/components/dashboard/ContentStudioAI";
 import { LegalPostventaModule } from "@/components/dashboard/LegalPostventaModule";
 import { WhiteLabelSettings } from "@/components/dashboard/WhiteLabelSettings";
 import { AgentOnboardingModal } from "@/components/dashboard/AgentOnboardingModal";
+import { DocumentPreviewModal } from "@/components/legal/DocumentPreviewModal";
+import { TeamSeatsManager } from "@/components/settings/TeamSeatsManager";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { ShareModal } from "@/components/ui/ShareModal";
 import { generateVisitSheet } from "@/lib/legal/spain/visita";
@@ -116,6 +118,16 @@ export default function BrokerDashboard() {
 
   // Modal de Onboarding y Configuración de Agencia
   const [onboardingModalOpen, setOnboardingModalOpen] = useState(false);
+
+  // Modal de Visor e Impresión de Documentos Oficiales con Firma
+  const [previewDocModalOpen, setPreviewDocModalOpen] = useState(false);
+  const [previewDocData, setPreviewDocData] = useState<{
+    title: string;
+    documentType: 'visita' | 'arras' | 'lph' | 'llaves';
+    content: string;
+    clientName?: string;
+    clientDni?: string;
+  } | null>(null);
 
   // Sincronización automática de pestaña activa según URL y parámetros
   useEffect(() => {
@@ -519,6 +531,12 @@ export default function BrokerDashboard() {
       recipientEmail: "lead@ejemplo.com"
     };
 
+    setPreviewDocData({
+      title: doc.title,
+      documentType: "visita",
+      content: doc.sheetText,
+      clientName: lead.name
+    });
     setSelectedProposal(proposal);
     setApprovalModalOpen(true);
   };
@@ -564,6 +582,12 @@ export default function BrokerDashboard() {
       recipientEmail: "lead@ejemplo.com"
     };
 
+    setPreviewDocData({
+      title: doc.title,
+      documentType: "arras",
+      content: doc.contractText,
+      clientName: lead.name
+    });
     setSelectedProposal(proposal);
     setApprovalModalOpen(true);
   };
@@ -738,6 +762,13 @@ export default function BrokerDashboard() {
       rawContent: content,
       recipientEmail: "operaciones@inmobia360.com"
     };
+
+    setPreviewDocData({
+      title,
+      documentType: docType === "acta_llaves" ? "llaves" : docType,
+      content,
+      clientName: pipelineCase.clientName
+    });
 
     setSelectedProposal(proposal);
     setApprovalModalOpen(true);
@@ -1517,13 +1548,20 @@ export default function BrokerDashboard() {
             </div>
           )}
 
-          {/* 10. CONFIGURACIÓN & MARCA BLANCA */}
+          {/* 10. CONFIGURACIÓN & MARCA BLANCA Y PLAZAS */}
           {activeTab === "settings" && (
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-7xl mx-auto space-y-8">
               <WhiteLabelSettings 
                 initialConfig={brandConfig}
                 onSaveConfig={handleSaveBrandConfig}
               />
+              <div className="pt-4 border-t border-slate-200">
+                <TeamSeatsManager 
+                  agencyName={brandConfig.agencyName}
+                  planType="boutique"
+                  maxSeats={5}
+                />
+              </div>
             </div>
           )}
         </div>
@@ -1536,7 +1574,24 @@ export default function BrokerDashboard() {
           proposal={selectedProposal}
           onClose={() => setApprovalModalOpen(false)}
           onConfirmApproval={handleConfirmApproval}
+          onPreviewOfficialDocument={() => setPreviewDocModalOpen(true)}
           isLoading={isApproving}
+        />
+      )}
+
+      {/* VISOR E IMPRESIÓN DE DOCUMENTO LEGAL OFICIAL CON FIRMA */}
+      {previewDocData && (
+        <DocumentPreviewModal
+          isOpen={previewDocModalOpen}
+          onClose={() => setPreviewDocModalOpen(false)}
+          title={previewDocData.title}
+          documentType={previewDocData.documentType}
+          content={previewDocData.content}
+          agencyName={brandConfig.agencyName}
+          associationNumber={brandConfig.apiNumber}
+          taxId={brandConfig.fiscalId}
+          clientName={previewDocData.clientName}
+          clientDni={previewDocData.clientDni}
         />
       )}
 

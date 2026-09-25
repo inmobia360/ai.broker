@@ -65,50 +65,66 @@ export default function PropertyLandingPage() {
       })
       .catch(() => {});
 
-    // 1. Buscar primero en las propiedades demo
-    const foundDemo = DEMO_PROPERTIES.find(
-      p => p.id === slug || p.id.toLowerCase() === slug.toLowerCase() || p.title.toLowerCase().includes(slug.toLowerCase())
-    );
+    const slugify = (text: string) =>
+      text
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)+/g, "");
 
-    if (foundDemo) {
-      setProperty(foundDemo);
-      setLoading(false);
-      return;
-    }
-
-    // 2. Si no es demo, intentar consultar al backend /api/properties
+    // 1. Consultar primero al backend /api/properties para encontrar propiedades reales de la cartera
     fetch('/api/properties')
       .then(res => res.json())
       .then(data => {
-        if (data.properties && Array.isArray(data.properties)) {
-          const match = data.properties.find((p: any) => p.id === slug || p.title?.toLowerCase().includes(slug.toLowerCase()));
+        const allProps = (data.properties || data.data || []) as any[];
+        if (Array.isArray(allProps) && allProps.length > 0) {
+          const match = allProps.find(
+            (p: any) =>
+              p.id === slug ||
+              p.id?.toLowerCase() === slug.toLowerCase() ||
+              slugify(p.title || "") === slug.toLowerCase() ||
+              p.title?.toLowerCase().includes(slug.toLowerCase())
+          );
+
           if (match) {
             setProperty({
               id: match.id,
               title: match.title,
               location: match.location,
               address: match.address || match.location,
-              price: match.price,
-              formattedPrice: `${match.price.toLocaleString('es-ES')} €`,
-              m2: match.built_area_m2 || 90,
-              rooms: match.bedrooms || 2,
-              baths: match.bathrooms || 1,
-              status: 'disponible',
-              type: 'Piso Residencial',
+              price: Number(match.price) || 0,
+              formattedPrice: match.formattedPrice || `${(Number(match.price) || 0).toLocaleString('es-ES')} €`,
+              m2: match.m2 || match.built_area_m2 || 90,
+              rooms: match.rooms || match.bedrooms || 2,
+              baths: match.baths || match.bathrooms || 1,
+              status: match.status || 'disponible',
+              type: match.type || 'Piso Residencial',
               description: match.description || 'Excelente propiedad en cartera gestionada por Inmobia 360.',
               coordinates: { lat: 40.4168, lng: -3.7038 },
-              imageUrl: match.image_url || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&auto=format&fit=crop&q=80'
+              imageUrl: match.imageUrl || match.image_url || match.images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&auto=format&fit=crop&q=80'
             });
-          } else {
-            // Fallback por defecto a la primera propiedad de la cartera
-            setProperty(DEMO_PROPERTIES[0]);
+            return;
           }
+        }
+
+        // 2. Si no se encontró en la base de datos real, buscar en las propiedades de plantilla demo
+        const foundDemo = DEMO_PROPERTIES.find(
+          p => p.id === slug || p.id.toLowerCase() === slug.toLowerCase() || slugify(p.title) === slug.toLowerCase() || p.title.toLowerCase().includes(slug.toLowerCase())
+        );
+
+        if (foundDemo) {
+          setProperty(foundDemo);
         } else {
+          // Fallback seguro a la primera propiedad
           setProperty(DEMO_PROPERTIES[0]);
         }
       })
       .catch(() => {
-        setProperty(DEMO_PROPERTIES[0]);
+        const foundDemo = DEMO_PROPERTIES.find(
+          p => p.id === slug || p.id.toLowerCase() === slug.toLowerCase() || slugify(p.title) === slug.toLowerCase()
+        );
+        setProperty(foundDemo || DEMO_PROPERTIES[0]);
       })
       .finally(() => {
         setLoading(false);
@@ -356,7 +372,9 @@ export default function PropertyLandingPage() {
               {/* Botones de Contacto Directo */}
               <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
                 <a
-                  href={`https://wa.me/${agencyBranding.whatsapp.replace(/[^0-9]/g, '')}`}
+                  href={`https://wa.me/${agencyBranding.whatsapp.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                    `Hola, te contacto desde la web por el inmueble "${property.title}" (${property.formattedPrice}). Me gustaría solicitar más información o agendar una visita.`
+                  )}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="py-2 px-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-xs"

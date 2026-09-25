@@ -30,6 +30,7 @@ interface DraftApprovalModalProps {
   onClose: () => void;
   proposal: ActionProposal | null;
   onConfirmApproval: (channel: "whatsapp" | "email" | "pdf") => Promise<void>;
+  onPreviewOfficialDocument?: () => void;
   isLoading?: boolean;
 }
 
@@ -38,6 +39,7 @@ export function DraftApprovalModal({
   onClose,
   proposal,
   onConfirmApproval,
+  onPreviewOfficialDocument,
   isLoading = false,
 }: DraftApprovalModalProps) {
   const [selectedChannel, setSelectedChannel] = useState<"whatsapp" | "email" | "pdf">("whatsapp");
@@ -193,33 +195,46 @@ export function DraftApprovalModal({
         </div>
 
         {/* Pie del Modal con Acciones */}
-        <div className="p-5 border-t border-slate-800 bg-slate-950/60 flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isLoading}
-            className="px-4 py-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
-          >
-            Volver a editar
-          </button>
-          <button
-            type="button"
-            onClick={handleConfirm}
-            disabled={isLoading}
-            className="px-5 py-2.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 transition-all disabled:opacity-50"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Tramitando autorización...
-              </>
-            ) : (
-              <>
-                <ShieldCheck className="w-4 h-4" />
-                Autorizar y Proceder
-              </>
+        <div className="p-5 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between gap-3">
+          <div>
+            {onPreviewOfficialDocument && (
+              <button
+                type="button"
+                onClick={onPreviewOfficialDocument}
+                className="px-3.5 py-2 text-xs font-semibold text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-xl transition-colors flex items-center gap-1.5"
+              >
+                Previsualizar Oficial / Firmar
+              </button>
             )}
-          </button>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isLoading}
+              className="px-4 py-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+            >
+              Volver a editar
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={isLoading}
+              className="px-5 py-2.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-lg shadow-blue-600/30 flex items-center gap-2 transition-all disabled:opacity-50"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Tramitando autorización...
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="w-4 h-4" />
+                  Autorizar y Proceder
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
