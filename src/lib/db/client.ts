@@ -57,6 +57,22 @@ export async function withTenantContext<T>(
  * Helper para obtener el DDL del esquema SQL para migraciones o tests
  */
 export function getSchemaSql(): string {
-  const schemaPath = path.join(process.cwd(), 'src', 'lib', 'db', 'schema.sql');
-  return fs.readFileSync(schemaPath, 'utf8');
+  const candidatePaths = [
+    path.join(process.cwd(), 'src', 'lib', 'db', 'schema.sql'),
+    path.join(process.cwd(), 'schema.sql'),
+    '/app/src/lib/db/schema.sql',
+    path.resolve(process.cwd(), '..', 'src', 'lib', 'db', 'schema.sql')
+  ];
+
+  for (const p of candidatePaths) {
+    try {
+      if (fs.existsSync(p)) {
+        return fs.readFileSync(p, 'utf8');
+      }
+    } catch {
+      // continuar con la siguiente ruta
+    }
+  }
+
+  throw new Error("No se pudo localizar el archivo schema.sql en las rutas del sistema.");
 }
