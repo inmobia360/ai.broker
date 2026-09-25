@@ -43,6 +43,7 @@ import { WhiteLabelSettings } from "@/components/dashboard/WhiteLabelSettings";
 import { AgentOnboardingModal } from "@/components/dashboard/AgentOnboardingModal";
 import { DocumentPreviewModal } from "@/components/legal/DocumentPreviewModal";
 import { TeamSeatsManager } from "@/components/settings/TeamSeatsManager";
+import { NotificationSettingsPanel } from "@/components/settings/NotificationSettingsPanel";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { ShareModal } from "@/components/ui/ShareModal";
 import { generateVisitSheet } from "@/lib/legal/spain/visita";
@@ -1560,6 +1561,11 @@ export default function BrokerDashboard() {
                   agencyName={brandConfig.agencyName}
                   planType="boutique"
                   maxSeats={5}
+                />
+              </div>
+              <div className="pt-4 border-t border-slate-200">
+                <NotificationSettingsPanel 
+                  agencyName={brandConfig.agencyName}
                 />
               </div>
             </div>

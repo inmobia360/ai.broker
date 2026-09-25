@@ -4,6 +4,7 @@ import { resolveTenantFromRequest } from "@/lib/security/tenantGuard";
 import { toTenantUuid } from "@/lib/tenant";
 import { listLeads, createLead, updateLeadStatus } from "@/lib/db/repositories/leads";
 import { PRIORITY_LEADS } from "@/components/dashboard/PriorityLeadsWidget";
+import { dispatchLeadNotification } from "@/lib/leads/notificationDispatcher";
 
 const CreateLeadSchema = z.object({
   full_name: z.string().min(2).optional(),
@@ -103,6 +104,18 @@ export async function POST(req: Request) {
       recommended_action: action,
       status: (d.status === "nuevo" ? "new" : d.status) as "new" | "in_progress" | "scheduled" | "archived"
     };
+
+    // Despacho asíncrono no bloqueante de alertas para leads calientes (Telegram / Webhook / Email)
+    dispatchLeadNotification(
+      {
+        ...normalizedLead,
+        property_title: d.property_title
+      },
+      tenantId,
+      "Inmobia 360"
+    ).catch(err => {
+      console.warn("[Lead Notification Dispatcher] Error no bloqueante:", err);
+    });
 
     try {
       const created = await createLead(tenantId, normalizedLead);
