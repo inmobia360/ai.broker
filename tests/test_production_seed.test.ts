@@ -23,12 +23,12 @@ describe('T15: Semillado Idempotente y Persistencia Multi-Tenant (Seed)', () => 
       assert.ok(lead.id, 'El lead debe tener id');
       assert.ok(lead.name, 'El lead debe tener nombre');
       assert.ok(lead.phone, 'El lead debe tener teléfono');
-      assert.ok(lead.intent, 'El lead debe tener intención');
+      assert.ok(lead.category, 'El lead debe tener categoría de intención');
     }
 
     for (const deal of INITIAL_PIPELINE_CASES) {
       assert.ok(deal.id, 'El expediente debe tener id');
-      assert.ok(deal.code, 'El expediente debe tener código (EXP-...)');
+      assert.match(deal.id, /^EXP-\d{4}-\d{3}$/, 'El id debe contener el código de expediente');
       assert.ok(deal.stage, 'El expediente debe tener fase asignada');
       assert.ok(deal.clientName, 'El expediente debe tener nombre de cliente');
     }
@@ -41,3 +41,4 @@ describe('T15: Semillado Idempotente y Persistencia Multi-Tenant (Seed)', () => 
     assert.match(uuid1, /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
   });
 });
+
