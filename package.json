@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --experimental-strip-types --test tests/**/*.test.ts"
+    "test": "node --experimental-strip-types --test --test-force-exit tests/*.test.ts"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -32,3 +32,4 @@
     "typescript": "^5.7.2"
   }
 }
+
