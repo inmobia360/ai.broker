@@ -2,6 +2,7 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { 
   getDefaultWhiteLabelConfig, 
+  mergeWhiteLabelConfig,
   validateTeamCapacity, 
   formatAgencyRole,
   MAX_TEAM_SEATS
@@ -16,6 +17,33 @@ describe('T3: Módulo de Marca Blanca y Plazas de Equipo (RF-WLD10, RNF-WLD1)', 
     assert.strictEqual(config.agencyName, 'Inmobia 360');
     assert.ok(config.team.length <= MAX_TEAM_SEATS);
     assert.strictEqual(config.fiscalId, 'B-88776655');
+  });
+
+  test('Normaliza la marca persistida en snake_case y conserva los valores ausentes', () => {
+    const defaults = getDefaultWhiteLabelConfig('inmobia360');
+    const config = mergeWhiteLabelConfig(defaults, {
+      tenant_id: 'tenant-uuid',
+      agency_name: 'Inmobia Centro',
+      tagline: 'Tu agencia, conectada',
+      primary_color: '#112233',
+      accent_color: '#445566',
+      tax_id: 'B12345678',
+      association_number: 'API-123',
+      support_email: 'hola@inmobia360.test',
+      support_phone: '+34 900 000 000'
+    });
+
+    assert.strictEqual(config.tenantId, 'tenant-uuid');
+    assert.strictEqual(config.agencyName, 'Inmobia Centro');
+    assert.strictEqual(config.brandSlogan, 'Tu agencia, conectada');
+    assert.strictEqual(config.primaryColor, '#112233');
+    assert.strictEqual(config.accentColor, '#445566');
+    assert.strictEqual(config.fiscalId, 'B12345678');
+    assert.strictEqual(config.apiNumber, 'API-123');
+    assert.strictEqual(config.contactEmail, 'hola@inmobia360.test');
+    assert.strictEqual(config.contactPhone, '+34 900 000 000');
+    assert.strictEqual(config.address, defaults.address);
+    assert.deepStrictEqual(config.team, defaults.team);
   });
 
   test('Valida que no se exceda el cupo máximo de 5 integrantes en el equipo', () => {
@@ -46,3 +74,4 @@ describe('T3: Módulo de Marca Blanca y Plazas de Equipo (RF-WLD10, RNF-WLD1)', 
     assert.strictEqual(formatAgencyRole('coordinador'), 'Coordinador / Gestión Documental');
   });
 });
+
