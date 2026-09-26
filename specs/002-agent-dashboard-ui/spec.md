@@ -34,7 +34,11 @@ El objetivo es proporcionar un panel de control interactivo con el estilo visual
 ### Módulo de Monitorización de Sistema
 - **RF-UI-7 (Monitor de Salud del Motor Cognitivo)**: EL SISTEMA debe consultar periódicamente `/api/health` y reflejar en la cabecera el estado de conexión del motor de IA (`Hostinger Ollama` o `Cognitive Fallback`) y la latencia en milisegundos.
 
+### Módulo de Identidad Visual en Acceso
+- **RF-UI-8 (Marca legible en acceso)**: CUANDO el usuario abra la pantalla de acceso sobre un fondo claro, EL SISTEMA debe mostrar el logotipo oficial completo de Inmobia 360 con contraste suficiente y tamaño legible para distinguir el isotipo, el nombre y el descriptor de marca.
+
 ## Requisitos no funcionales
 - **RNF-UI-1 (Identidad Visual)**: Interfaz desarrollada con Tailwind CSS respetando la paleta *Dark Slate* institucional (`bg-slate-950`, acentos `blue-600` / `indigo-500`, bordes `slate-800`).
 - **RNF-UI-2 (Tipografía y Ortografía)**: Textos íntegramente en español peninsular normativo con codificación UTF-8 impecable (sin caracteres corruptos ni signos `?`).
 - **RNF-UI-3 (Rendimiento)**: Carga inicial de interfaz inferior a 1,5 segundos y transiciones entre pestañas instantáneas sin recarga completa de página.
+

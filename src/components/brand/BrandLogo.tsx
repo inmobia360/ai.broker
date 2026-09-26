@@ -136,7 +136,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       {/* Tipografía Oficial */}
       {variant !== 'icon' && (
         <div className="flex flex-col justify-center text-left leading-none">
-          <div className={`font-black tracking-tight uppercase text-[#161E2E] dark:text-[#F8FAFC] ${titleSizes[size]}`}>
+          <div className={`font-black tracking-tight uppercase text-[#161E2E] ${titleSizes[size]}`}>
             <span>INMOBIA</span>{' '}
             <span className="text-[#FF8A00]">
               360
@@ -145,7 +145,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
           {(variant === 'full' || showSubtitle) && (
             <span
-              className={`font-semibold tracking-wider uppercase text-[#64748B] dark:text-[#94A3B8] mt-1 ${subtitleSizes[size]}`}
+              className={`font-semibold tracking-wider uppercase text-slate-600 mt-1 ${subtitleSizes[size]}`}
             >
               {subtitleText}
             </span>
@@ -179,3 +179,4 @@ export const LogoIcon: React.FC<Omit<BrandLogoProps, 'variant'>> = (props) => (
 );
 
 export default BrandLogo;
+

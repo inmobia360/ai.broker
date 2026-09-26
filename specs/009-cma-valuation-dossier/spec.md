@@ -37,9 +37,15 @@ Este módulo (Módulo 3) completa y conecta el sistema de tasación rápida con:
 ### RF-ACM5: Modo Borrador Seguro y Activación en 1 Clic
 - **CUANDO** el agente pulse *"Generar Dossier de Captación"* en `InteractiveCMA.tsx`, **EL SISTEMA** debe instanciar una `ActionProposal` y desplegar el `DraftApprovalModal` para autorizar la descarga del informe o su remisión por WhatsApp.
 
+### RF-OPS1: Disponibilidad del Dashboard de Producción
+- **CUANDO** un usuario abra la ruta principal de la aplicación en un navegador compatible, **EL SISTEMA** debe renderizar el dashboard operativo sin una excepción cliente que impida su uso.
+- **SI** ocurre un error recuperable al inicializar un módulo del dashboard, **EL SISTEMA** debe conservar la navegación principal y mostrar un estado de error comprensible en el módulo afectado.
+- **Criterio de aceptación:** la ruta `/` renderiza en el build de producción sin excepción cliente y el usuario puede navegar entre el dashboard y las pestañas principales.
+
 ---
 
 ## Requisitos No Funcionales (RNF)
 - **RNF-ACM1 (Tipado Estricto):** Cobertura exhaustiva en TypeScript sin `any` ni errores en `npx tsc --noEmit`.
 - **RNF-ACM2 (Suite de Pruebas):** Tests automatizados en `tests/test_cma_valuation_flow.test.ts` con cobertura del 100% de los cálculos económicos y generación del dossier.
 - **RNF-ACM3 (Aislamiento de Tenant):** Persistencia y aislamiento estricto por `tenant_id`.
+

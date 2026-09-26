@@ -12,3 +12,5 @@
 - [x] T5: Conectar acciones rápidas en la pestaña de Expedientes para generar Arras o Alquiler LAU directamente en el chat (RF-UI-5).
 - [x] T6: Implementar monitor de salud en la barra superior conectado en tiempo real con `/api/health` (RF-UI-7).
 - [x] T7: Ejecutar suite de pruebas de compilación (`npx tsc --noEmit`, `npm test`, `npm run build`) y validar funcionamiento integral.
+- [x] T8: Mantener legibles el isotipo, el nombre y el descriptor del logotipo oficial sobre el fondo claro de acceso, también cuando el sistema operativo prefiera tema oscuro (RF-UI-8). Hecho cuando: `/login` muestra “INMOBIA 360” en texto oscuro legible y el descriptor conserva contraste.
+
