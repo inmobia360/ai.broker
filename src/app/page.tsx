@@ -52,7 +52,8 @@ import { generateLPHDebtCertificateRequest } from "@/lib/legal/spain/communityLP
 import { generateKeyHandoverAct } from "@/lib/legal/spain/handoverPostventa";
 import { 
   WhiteLabelConfig, 
-  getDefaultWhiteLabelConfig 
+  getDefaultWhiteLabelConfig,
+  mergeWhiteLabelConfig
 } from "@/lib/branding/whiteLabel";
 
 interface Message {
@@ -164,7 +165,9 @@ export default function BrokerDashboard() {
         const savedBrand = localStorage.getItem("inmobia360_brand_config");
         if (savedBrand) {
           const parsed = JSON.parse(savedBrand);
-          setBrandConfig(prev => ({ ...prev, ...parsed }));
+          if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+            setBrandConfig(prev => mergeWhiteLabelConfig(prev, parsed));
+          }
         }
       } catch {}
     }
@@ -173,19 +176,7 @@ export default function BrokerDashboard() {
       .then(res => res.json())
       .then(data => {
         if (data.ok && data.data) {
-          const d = data.data;
-          setBrandConfig(prev => ({
-            ...prev,
-            agencyName: d.agency_name || d.agencyName || prev.agencyName,
-            brandSlogan: d.tagline || d.brandSlogan || prev.brandSlogan,
-            primaryColor: d.primary_color || d.primaryColor || prev.primaryColor,
-            accentColor: d.accent_color || d.accentColor || prev.accentColor,
-            fiscalId: d.tax_id || d.fiscalId || prev.fiscalId,
-            apiNumber: d.association_number || d.apiNumber || prev.apiNumber,
-            contactEmail: d.support_email || d.contactEmail || prev.contactEmail,
-            contactPhone: d.support_phone || d.contactPhone || prev.contactPhone,
-            logoUrl: d.logo_url || d.logoUrl || prev.logoUrl
-          }));
+          setBrandConfig(prev => mergeWhiteLabelConfig(prev, data.data));
         }
       })
       .catch(() => {});
@@ -319,7 +310,7 @@ export default function BrokerDashboard() {
       const resBrand = await fetch("/api/settings/brand", { headers: tenantHeaders });
       const dataBrand = await resBrand.json();
       if (dataBrand.ok && dataBrand.data) {
-        setBrandConfig(dataBrand.data);
+        setBrandConfig(prev => mergeWhiteLabelConfig(prev, dataBrand.data));
       }
     } catch {}
   };
@@ -1822,3 +1813,4 @@ export default function BrokerDashboard() {
     </div>
   );
 }
+
