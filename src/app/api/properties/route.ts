@@ -3,7 +3,7 @@ import { z } from "zod";
 import { resolveTenantFromRequest } from "@/lib/security/tenantGuard";
 import { toTenantUuid } from "@/lib/tenant";
 import { listProperties, createProperty } from "@/lib/db/repositories/properties";
-import { DEMO_PROPERTIES } from "@/components/dashboard/PropertyCatalog";
+import { DEMO_PROPERTIES } from "@/lib/properties/propertyTypes";
 
 const CreatePropertySchema = z.object({
   title: z.string().min(3),

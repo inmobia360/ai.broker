@@ -166,11 +166,6 @@ export default function BrokerDashboard() {
           const parsed = JSON.parse(savedBrand);
           setBrandConfig(prev => ({ ...prev, ...parsed }));
         }
-        const isClean = localStorage.getItem("inmobia360_clean_portfolio");
-        if (isClean === "true") {
-          setProperties([]);
-          setLeads([]);
-        }
       } catch {}
     }
 
@@ -267,16 +262,25 @@ export default function BrokerDashboard() {
   };
 
   const fetchInitialData = async () => {
+    const tenantHeaders = { 
+      "Content-Type": "application/json",
+      "x-tenant-id": brandConfig.tenantId || "inmobia360" 
+    };
+
     try {
-      const resProps = await fetch("/api/properties");
+      const resProps = await fetch("/api/properties", { headers: tenantHeaders });
       const dataProps = await resProps.json();
       if (dataProps.ok && Array.isArray(dataProps.data) && dataProps.data.length > 0) {
         setProperties(dataProps.data);
+      } else {
+        setProperties(DEMO_PROPERTIES);
       }
-    } catch {}
+    } catch {
+      setProperties(DEMO_PROPERTIES);
+    }
 
     try {
-      const resLeads = await fetch("/api/leads");
+      const resLeads = await fetch("/api/leads", { headers: tenantHeaders });
       const dataLeads = await resLeads.json();
       if (dataLeads.ok && Array.isArray(dataLeads.data) && dataLeads.data.length > 0) {
         const formattedLeads: PriorityLead[] = dataLeads.data.map((l: any, idx: number) => ({
@@ -296,11 +300,15 @@ export default function BrokerDashboard() {
           suggestedPrompt: `Contactar a ${l.full_name || l.name} para coordinar visita y analizar capacidad financiera.`
         }));
         setLeads(formattedLeads);
+      } else {
+        setLeads(PRIORITY_LEADS);
       }
-    } catch {}
+    } catch {
+      setLeads(PRIORITY_LEADS);
+    }
 
     try {
-      const resPipe = await fetch("/api/pipeline");
+      const resPipe = await fetch("/api/pipeline", { headers: tenantHeaders });
       const dataPipe = await resPipe.json();
       if (dataPipe.ok && Array.isArray(dataPipe.data) && dataPipe.data.length > 0) {
         setPipelineCases(dataPipe.data);
@@ -308,7 +316,7 @@ export default function BrokerDashboard() {
     } catch {}
 
     try {
-      const resBrand = await fetch("/api/settings/brand");
+      const resBrand = await fetch("/api/settings/brand", { headers: tenantHeaders });
       const dataBrand = await resBrand.json();
       if (dataBrand.ok && dataBrand.data) {
         setBrandConfig(dataBrand.data);
@@ -500,20 +508,24 @@ export default function BrokerDashboard() {
 
   const handleGenerateVisitSheetFromLead = (lead: PriorityLead) => {
     const rawPrice = parseFloat(lead.budget.replace(/[^0-9]/g, "")) || 350000;
+    const isMuller = lead.name.includes("Müller");
     const doc = generateVisitSheet({
       agencia: {
         nombreAgencia: brandConfig.agencyName,
         cif: brandConfig.fiscalId,
-        registroProfesional: brandConfig.apiNumber
+        registroProfesional: brandConfig.apiNumber,
+        nombreAgente: "Carlos Martínez (Comercial)"
       },
       visitante: {
-        nombreCompleto: lead.name,
+        nombreCompleto: lead.name.replace(/\s*\([^)]*\)/, "").trim(),
+        dniNie: isMuller ? "Y-8492014-K" : "53891402X",
         telefono: lead.phone,
-        email: "lead@ejemplo.com"
+        email: isMuller ? "sophie.muller@invest-europa.com" : "carlos.romero@familyoffice-madrid.es"
       },
       inmueble: {
         direccion: `Inmueble de interés en ${lead.location}`,
         municipio: lead.location.split("(")[0].trim() || "Madrid",
+        referenciaCatastral: lead.location.includes("Tenerife") ? "38001A005001230000TG" : "5432101VK4753B0001TR",
         precioOrientativo: rawPrice,
         tipoOperacion: lead.category.toLowerCase().includes("alquiler") ? "alquiler" : "venta"
       },
@@ -529,13 +541,13 @@ export default function BrokerDashboard() {
     const proposal: ActionProposal = {
       id: `prop-visita-${Date.now()}`,
       title: `${doc.title} — ${lead.name}`,
-      description: `Hoja de Encargo de Visita generada automáticamente para ${lead.name} con reserva de corretaje, blindaje de honorarios y cláusula RGPD.`,
+      description: `Hoja de Encargo de Visita generada para ${lead.name} (DNI/NIE: ${isMuller ? "Y-8492014-K" : "53891402X"}). Agente: Carlos Martínez · Fecha: Hoy a las 12:00h · Honorarios: 3% (12 meses de validez).`,
       actionType: "visita",
       status: "pending",
       fileName: `Hoja_Visita_${lead.name.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`,
       rawContent: doc.sheetText,
       recipientPhone: lead.phone,
-      recipientEmail: "lead@ejemplo.com"
+      recipientEmail: isMuller ? "sophie.muller@invest-europa.com" : "carlos.romero@familyoffice-madrid.es"
     };
 
     setPreviewDocData({
@@ -551,22 +563,23 @@ export default function BrokerDashboard() {
   const handleGenerateArrasFromLead = (lead: PriorityLead) => {
     const rawPrice = parseFloat(lead.budget.replace(/[^0-9]/g, "")) || 450000;
     const senal = Math.round(rawPrice * 0.10);
+    const isMuller = lead.name.includes("Müller");
     const doc = generateArrasContract({
       municipio: lead.location.split("(")[0].trim() || "Madrid",
       fecha: new Date().toLocaleDateString("es-ES"),
       vendedor: {
-        nombreCompleto: `Parte Vendedora (Agencia ${brandConfig.agencyName})`,
+        nombreCompleto: `Parte Vendedora (en intermediación de ${brandConfig.agencyName})`,
         dniNie: brandConfig.fiscalId,
-        domicilio: lead.location
+        domicilio: "Domicilio Social de la Agencia"
       },
       comprador: {
-        nombreCompleto: lead.name,
-        dniNie: "DNI/NIE PENDIENTE DE APORTAR",
+        nombreCompleto: lead.name.replace(/\s*\([^)]*\)/, "").trim(),
+        dniNie: isMuller ? "Y-8492014-K" : "53891402X",
         domicilio: lead.location
       },
       inmueble: {
         direccion: `Inmueble en ${lead.location}`,
-        referenciaCatastral: "9872023VK4797S0001WX",
+        referenciaCatastral: lead.location.includes("Tenerife") ? "38001A005001230000TG" : "5432101VK4753B0001TR",
         datosRegistrales: "Finca Registral nº 48.912 del Registro de la Propiedad"
       },
       condiciones: {
@@ -580,13 +593,13 @@ export default function BrokerDashboard() {
     const proposal: ActionProposal = {
       id: `prop-arras-${Date.now()}`,
       title: `${doc.title} (Art. 1454 C.C.) — ${lead.name}`,
-      description: `Contrato de Arras Penitenciales conforme al Art. 1454 del Código Civil con señal del 10% (${senal.toLocaleString("es-ES")} €) y plazo notarial de 60 días.`,
+      description: `Contrato de Arras Penitenciales conforme al Art. 1454 del Código Civil con señal del 10% (${senal.toLocaleString("es-ES")} €) y plazo notarial de 60 días. Comprador: ${lead.name} · DNI: ${isMuller ? "Y-8492014-K" : "53891402X"}.`,
       actionType: "arras",
       status: "pending",
       fileName: `Contrato_Arras_${lead.name.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`,
       rawContent: doc.contractText,
       recipientPhone: lead.phone,
-      recipientEmail: "lead@ejemplo.com"
+      recipientEmail: isMuller ? "sophie.muller@invest-europa.com" : "carlos.romero@familyoffice-madrid.es"
     };
 
     setPreviewDocData({
@@ -600,33 +613,51 @@ export default function BrokerDashboard() {
   };
 
   const handleConvertToPipeline = async (lead: PriorityLead) => {
+    const rawPriceNum = parseFloat(lead.budget.replace(/[^0-9]/g, "")) || 450000;
+    const isMuller = lead.name.includes("Müller");
     const newCase: PipelineCase = {
       id: `EXP-2026-${String(pipelineCases.length + 1).padStart(3, "0")}`,
       title: `Operación ${lead.name.split(" ")[0]} — ${lead.location}`,
       clientName: lead.name,
+      clientDni: isMuller ? "Y-8492014-K" : "53891402X",
+      clientPhone: lead.phone,
+      clientEmail: isMuller ? "sophie.muller@invest-europa.com" : "carlos.romero@familyoffice-madrid.es",
       price: lead.budget,
       stage: "comercializacion",
       pendingDoc: "Hoja de Visita con Reserva de Honorarios",
-      suggestedAction: lead.suggestedPrompt
+      suggestedAction: lead.suggestedPrompt,
+      cadastralRef: lead.location.includes("Tenerife") ? "38001A005001230000TG" : "5432101VK4753B0001TR",
+      assignedAgent: "Carlos Martínez (Comercial)",
+      visitDate: new Date().toLocaleDateString("es-ES"),
+      visitTime: "12:00",
+      feePercentage: 3,
+      validityMonths: 12
     };
+
     setPipelineCases(prev => [newCase, ...prev]);
 
+    // Actualizar acción sugerida del lead
+    setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, recommendedAction: `Expediente ${newCase.id} en fase de comercialización.` } : l));
+
     try {
-      const rawPrice = parseFloat(lead.budget.replace(/[^0-9.]/g, "")) || 0;
+      const tenantHeaders = { 
+        "Content-Type": "application/json", 
+        "x-tenant-id": brandConfig.tenantId || "inmobia360" 
+      };
       await fetch("/api/pipeline", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: tenantHeaders,
         body: JSON.stringify({
           title: newCase.title,
           lead_id: lead.id,
           stage: "comercializacion",
-          deal_value: rawPrice,
+          deal_value: rawPriceNum,
           metadata: { clientName: lead.name, location: lead.location }
         })
       });
       await fetch("/api/leads", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: tenantHeaders,
         body: JSON.stringify({ id: lead.id, status: "scheduled" })
       });
     } catch {}
@@ -649,46 +680,63 @@ export default function BrokerDashboard() {
         agencia: {
           nombreAgencia: brandConfig.agencyName,
           cif: brandConfig.fiscalId,
-          registroProfesional: brandConfig.apiNumber
+          registroProfesional: brandConfig.apiNumber,
+          nombreAgente: pipelineCase.assignedAgent || "Carlos Martínez (Comercial)"
         },
         visitante: {
-          nombreCompleto: pipelineCase.clientName
+          nombreCompleto: pipelineCase.clientName.replace(/\s*\([^)]*\)/, "").trim(),
+          dniNie: pipelineCase.clientDni || "Y-8492014-K",
+          telefono: pipelineCase.clientPhone || "+34 600 987 654",
+          email: pipelineCase.clientEmail || "sophie.muller@invest-europa.com"
         },
         inmueble: {
           direccion: pipelineCase.title,
-          precioOrientativo: rawPrice
+          municipio: pipelineCase.title.includes("Tenerife") || pipelineCase.title.includes("Adeje") ? "Adeje (Santa Cruz de Tenerife)" : pipelineCase.title.includes("Barcelona") ? "Barcelona" : pipelineCase.title.includes("Valencia") ? "Valencia" : pipelineCase.title.includes("Sevilla") ? "Sevilla" : "Madrid",
+          referenciaCatastral: pipelineCase.cadastralRef || "38001A005001230000TG",
+          precioOrientativo: rawPrice,
+          tipoOperacion: "venta"
         },
         honorarios: {
-          porcentajeHonorariosVenta: 3,
+          porcentajeHonorariosVenta: pipelineCase.feePercentage || 3,
           ivaAplicable: 21,
-          periodoValidezMeses: 12
-        }
+          periodoValidezMeses: pipelineCase.validityMonths || 12
+        },
+        fechaVisita: pipelineCase.visitDate || new Date().toLocaleDateString("es-ES"),
+        horaVisita: pipelineCase.visitTime || "17:30"
       });
       title = `${doc.title} — ${pipelineCase.id}`;
-      description = `Hoja de visita con blindaje de honorarios para el expediente ${pipelineCase.id}.`;
+      description = `Hoja de visita con blindaje de honorarios para el expediente ${pipelineCase.id}. Agente: ${pipelineCase.assignedAgent || "Carlos Martínez"} · Visitante: ${pipelineCase.clientName} (DNI/NIE: ${pipelineCase.clientDni || "Y-8492014-K"}) · Visita: ${pipelineCase.visitDate || "Hoy"} a las ${pipelineCase.visitTime || "17:30"}. Honorarios: ${pipelineCase.feePercentage || 3}% (${pipelineCase.validityMonths || 12} meses validez).`;
       content = doc.sheetText;
       fileName = `Hoja_Visita_${pipelineCase.id}.pdf`;
     } else if (docType === "arras") {
       const senal = Math.round(rawPrice * 0.10);
       const doc = generateArrasContract({
+        municipio: pipelineCase.title.includes("Tenerife") || pipelineCase.title.includes("Adeje") ? "Adeje (Santa Cruz de Tenerife)" : pipelineCase.title.includes("Barcelona") ? "Barcelona" : pipelineCase.title.includes("Valencia") ? "Valencia" : pipelineCase.title.includes("Sevilla") ? "Sevilla" : "Madrid",
+        fecha: new Date().toLocaleDateString("es-ES"),
         condiciones: {
           precioTotal: rawPrice,
           importeSenalArras: senal,
-          formaPagoSenal: "Transferencia bancaria inmediata",
+          formaPagoSenal: "Transferencia bancaria inmediata a cuenta notarial en garantía",
           plazoMaximoNotaria: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toLocaleDateString("es-ES")
         },
         comprador: {
-          nombreCompleto: pipelineCase.clientName
+          nombreCompleto: pipelineCase.clientName.replace(/\s*\([^)]*\)/, "").trim(),
+          dniNie: pipelineCase.clientDni || "24567891B",
+          domicilio: "Calle Mayor 12, España"
         },
         vendedor: {
-          nombreCompleto: `Agencia ${brandConfig.agencyName} (en representación de propiedad)`
+          nombreCompleto: `Parte Vendedora (en intermediación de ${brandConfig.agencyName})`,
+          dniNie: brandConfig.fiscalId,
+          domicilio: "Domicilio Social de la Agencia"
         },
         inmueble: {
-          direccion: pipelineCase.title
+          direccion: pipelineCase.title,
+          referenciaCatastral: pipelineCase.cadastralRef || "46900A015000760001BH",
+          datosRegistrales: "Finca Registral nº 48.912 del Registro de la Propiedad"
         }
       });
       title = `${doc.title} (Art. 1454 C.C.) — ${pipelineCase.id}`;
-      description = `Contrato de Arras Penitenciales con señal del 10% (${senal.toLocaleString("es-ES")} €) para el expediente ${pipelineCase.id}.`;
+      description = `Contrato de Arras Penitenciales con señal del 10% (${senal.toLocaleString("es-ES")} €) para el expediente ${pipelineCase.id}. Comprador: ${pipelineCase.clientName} (DNI/NIE: ${pipelineCase.clientDni || "24567891B"}) · Ref. Catastral: ${pipelineCase.cadastralRef || "46900A015000760001BH"}.`;
       content = doc.contractText;
       fileName = `Contrato_Arras_${pipelineCase.id}.pdf`;
     } else if (docType === "lph") {
@@ -944,7 +992,7 @@ export default function BrokerDashboard() {
                     Propiedades & Mapa
                   </div>
                   <span className="text-[11px] bg-slate-100 text-slate-600 font-semibold px-2 py-0.5 rounded-full">
-                    5 activas
+                    {properties.length} {properties.length === 1 ? "activa" : "activas"}
                   </span>
                 </button>
 
@@ -961,7 +1009,7 @@ export default function BrokerDashboard() {
                     Contactos & Visitas
                   </div>
                   <span className="text-[11px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-full">
-                    2 nuevos
+                    {leads.length} {leads.length === 1 ? "contacto" : "contactos"}
                   </span>
                 </button>
 

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { resolveTenantFromRequest } from "@/lib/security/tenantGuard";
 import { toTenantUuid } from "@/lib/tenant";
 import { listLeads, createLead, updateLeadStatus } from "@/lib/db/repositories/leads";
-import { PRIORITY_LEADS } from "@/components/dashboard/PriorityLeadsWidget";
+import { PRIORITY_LEADS } from "@/lib/leads/leadTypes";
 import { dispatchLeadNotification } from "@/lib/leads/notificationDispatcher";
 
 const CreateLeadSchema = z.object({
