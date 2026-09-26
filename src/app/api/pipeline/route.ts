@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { resolveTenantFromRequest } from "@/lib/security/tenantGuard";
 import { toTenantUuid } from "@/lib/tenant";
 import { listDeals, createDeal, updateDealStage, PipelineStage } from "@/lib/db/repositories/pipeline";
-import { INITIAL_PIPELINE_CASES } from "@/components/dashboard/InteractivePipeline";
+import { INITIAL_PIPELINE_CASES } from "@/lib/pipeline/pipelineTypes";
 
 export async function GET(req: Request) {
   try {

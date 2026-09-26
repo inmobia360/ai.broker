@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { enforceTenantAccess } from './lib/security/tenantGuard';
+import { checkRateLimit } from './lib/security/rateLimiter';
 
 /**
  * Middleware global de Next.js para forzar el aislamiento multi-tenant en todas las rutas API.
@@ -24,6 +25,35 @@ export function middleware(request: NextRequest) {
 
   // Interceptar rutas API protegidas
   if (pathname.startsWith('/api/')) {
+    // 1. Rate Limiting perimétrico para prevenir saturación de inferencia y spam
+    if (pathname.startsWith('/api/chat') || (pathname.startsWith('/api/leads') && request.method === 'POST')) {
+      const forwardedFor = request.headers.get('x-forwarded-for');
+      const ip = (forwardedFor ? forwardedFor.split(',')[0].trim() : null) ||
+                 request.headers.get('x-real-ip') ||
+                 '127.0.0.1';
+
+      const isChat = pathname.startsWith('/api/chat');
+      const limit = isChat ? 25 : 10;
+      const key = `${isChat ? 'chat' : 'leads'}:${ip}`;
+      const rateLimitResult = checkRateLimit(key, limit);
+
+      if (!rateLimitResult.allowed) {
+        return NextResponse.json(
+          {
+            error: 'Demasiadas peticiones. Por favor, espera antes de continuar.',
+            retryAfter: rateLimitResult.retryAfterSeconds,
+          },
+          {
+            status: 429,
+            headers: {
+              'Retry-After': String(rateLimitResult.retryAfterSeconds),
+            },
+          }
+        );
+      }
+    }
+
+    // 2. Control de Acceso y Aislamiento Multi-Tenant (RF-1, RF-3)
     const authResult = enforceTenantAccess(request);
 
     if (!authResult.authorized) {
