@@ -32,6 +32,40 @@ export interface WhiteLabelConfig {
   team: TeamMember[];     // Máximo 5 integrantes para el plan PYME / Autónomo
 }
 
+/**
+ * Combina configuraciones parciales camelCase o filas PostgreSQL snake_case
+ * sin dejar que campos nulos/ausentes invaliden el estado requerido de UI.
+ */
+export function mergeWhiteLabelConfig(
+  current: WhiteLabelConfig,
+  source: Record<string, unknown>
+): WhiteLabelConfig {
+  const readString = (...keys: string[]): string | undefined => {
+    for (const key of keys) {
+      const value = source[key];
+      if (typeof value === "string" && value.trim().length > 0) return value;
+    }
+    return undefined;
+  };
+
+  return {
+    ...current,
+    tenantId: readString("tenantId", "tenant_id") ?? current.tenantId,
+    agencyName: readString("agencyName", "agency_name") ?? current.agencyName,
+    brandSlogan: readString("brandSlogan", "tagline") ?? current.brandSlogan,
+    logoUrl: readString("logoUrl", "logo_url") ?? current.logoUrl,
+    primaryColor: readString("primaryColor", "primary_color") ?? current.primaryColor,
+    accentColor: readString("accentColor", "accent_color") ?? current.accentColor,
+    fiscalId: readString("fiscalId", "tax_id") ?? current.fiscalId,
+    apiNumber: readString("apiNumber", "association_number") ?? current.apiNumber,
+    contactEmail: readString("contactEmail", "support_email") ?? current.contactEmail,
+    contactPhone: readString("contactPhone", "support_phone") ?? current.contactPhone,
+    address: readString("address") ?? current.address,
+    website: readString("website") ?? current.website,
+    team: Array.isArray(source.team) ? source.team as TeamMember[] : current.team
+  };
+}
+
 export const MAX_TEAM_SEATS = 5;
 
 /**
@@ -110,3 +144,4 @@ export function formatAgencyRole(role: AgencyRole): string {
       return "Agente";
   }
 }
+
