@@ -6,3 +6,5 @@
 - [x] T4: Conectar botón de acción *"Prevalorar ACM"* en el catálogo de propiedades (`PropertyCatalog.tsx`) para cargar los datos del inmueble directamente en el tasador.
 - [x] T5: Crear suite de tests automatizados (`tests/test_cma_valuation_flow.test.ts`) validando cálculos de ZOPA, testigos, WalkScore y generación del dossier.
 - [x] T6: Ejecutar suite de verificación (`npx tsc --noEmit`, `npm test` y `npm run build`).
+- [x] T7: Normalizar respuestas camelCase/snake_case de marca blanca antes de actualizar el estado del Dashboard y conservar valores por defecto ante campos ausentes (RF-OPS1). Hecho cuando: un objeto de marca persistido con `agency_name` no provoca la excepción cliente por `agencyName.substring` y la prueba de regresión pasa.
+
