@@ -317,9 +317,12 @@ export default function BrokerDashboard() {
   };
 
   useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.cookie = `inmobia_tenant=${brandConfig.tenantId || "inmobia360"}; path=/; max-age=31536000; SameSite=Lax`;
+    }
     fetchHealth();
     fetchInitialData();
-  }, []);
+  }, [brandConfig.tenantId]);
 
   const handleSendMessage = async (customText?: string) => {
     const textToSend = customText || inputMessage;
@@ -340,10 +343,13 @@ export default function BrokerDashboard() {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-tenant-id": brandConfig.tenantId || "inmobia360"
+        },
         body: JSON.stringify({
           message: textToSend,
-          tenantId: brandConfig.tenantId,
+          tenantId: brandConfig.tenantId || "inmobia360",
           history: messages.slice(-5).map(m => ({ role: m.sender, content: m.text }))
         })
       });

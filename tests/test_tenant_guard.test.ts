@@ -120,4 +120,18 @@ describe('T3: Contexto de Seguridad, Middleware y Detección de Cross-Tenant (RF
     assert.strictEqual(logs[0].ipAddress, '192.168.1.50');
   });
 
+  test('resolveTenantFromRequest resuelve inmobia360 para app.inmobia360.com y cookies', () => {
+    // 1. Host app.inmobia360.com
+    const reqApp = new Request('https://app.inmobia360.com/api/chat', {
+      headers: { host: 'app.inmobia360.com' }
+    });
+    assert.strictEqual(resolveTenantFromRequest(reqApp), 'inmobia360');
+
+    // 2. Cookie de sesión inmobia_tenant
+    const reqCookie = new Request('http://localhost/api/chat', {
+      headers: { cookie: 'session_id=abc; inmobia_tenant=inmobia360; other=123' }
+    });
+    assert.strictEqual(resolveTenantFromRequest(reqCookie), 'inmobia360');
+  });
+
 });

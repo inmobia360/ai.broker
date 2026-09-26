@@ -45,12 +45,24 @@ export function resolveTenantFromRequest(req: Request): string | null {
     }
   }
 
-  // 3. Resolución por subdominio del Host
+  // 3. Cookie de sesión de tenant
+  const cookieHeader = req.headers.get('cookie') || '';
+  const matchCookie = cookieHeader.match(/(?:^|;\s*)(?:inmobia_tenant|tenant_id)=([^;]+)/);
+  if (matchCookie && matchCookie[1]) {
+    const cookieTenant = decodeURIComponent(matchCookie[1]).trim().toLowerCase();
+    if (cookieTenant) return cookieTenant;
+  }
+
+  // 4. Resolución por subdominio del Host
   const host = req.headers.get('host') || '';
   if (host.includes('.inmobia360.com')) {
     const sub = host.split('.')[0].toLowerCase();
     if (sub && sub !== 'www' && sub !== 'app' && sub !== 'api') {
       return sub;
+    }
+    // El subdominio app es el portal SaaS principal de Inmobia 360
+    if (sub === 'app') {
+      return 'inmobia360';
     }
   }
 
